@@ -1,0 +1,58 @@
+h1,h2,h3,h4,h5,h6,p {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0px;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+}
+.presenter-page-left, .presenter-page-right {
+    width: 50%;
+}
+
+.preview {
+    width: 100%;
+}
+
+.playlist-items {
+    height: 70%;
+    max-height: 70%;
+    overflow-y: scroll;
+}
+.playlist-item.hidden {
+    display: none;
+}
+.playlist-item.selected {
+    border: 2px solid blue;
+    cursor: initial;
+}
+.playlist-item {
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 20px;
+    cursor: pointer;
+    margin: 10px 0px;
+}
+.playlist-item > * {
+    margin: 0px;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 5px 0px;
+}
+.row button {
+    height: 30px;
+    width: 150px;
+    border-radius: 20px;
+}
+.row input[type=file] {
+    width: 300px;
+}
+.row > * {
+    width: 150px;
+    margin: 0px 5px;
+}

@@ -1,0 +1,10 @@
+[
+    {
+        "template": "bible",
+        "fields": {"title": "test", "location": "location", "text": "text"}
+    },
+    {
+        "template": "bible",
+        "fields": {"title": "test1", "location": "location", "text": "text"}
+    }
+]

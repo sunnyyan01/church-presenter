@@ -1,0 +1,78 @@
+<html>
+<head>
+<script src="presenter.js"></script>
+<link href="presenter.css" rel="stylesheet" />
+</head>
+<body>
+<div class="presenter-page-left">
+<div id="playlist-item-sample" class="playlist-item hidden" onClick="onPlaylistItemClick(this);">
+    <h3>welcome</h3>
+    <h1>宣召经文</h1>
+    <p>詩篇145章11-33節 1（大衛的讚美詩。）</p>
+</div>
+<h2>Playlist</h2>
+<div id="playlist-items" class="playlist-items">
+
+</div>
+<div class="row">
+    <h5>Slide Controls: </h5>
+    <div>
+        <button onclick="prevItem()">
+            Prev Item (←,↑)
+        </button>
+        <button onclick="nextItem()">
+            Next Item (→,↓)
+        </button>
+    </div>
+    <div>
+        <button onclick="prevSlide()">
+            Prev Slide (PgUp)
+        </button>
+        <button onclick="nextSlide()">
+            Next Slide (PgDn)
+        </button>
+    </div>
+    <div>
+        <button onclick="blank()">
+            Blank (Shift + B)
+        </button>
+        <button onclick="unblank()">
+            Unblank (B)
+        </button>
+    </div>
+</div>
+<div class="row">
+    <h5>Import Playlist: </h5>
+    <input
+        type="file"
+        accept=".txt"
+        onchange="loadPlaylist(this.files[0])"
+    />
+</div>
+<div class="row" id="window-controls">
+    <h5>Windows:</h5>
+    <button onclick="openSlideshow()">
+        Open Slideshow
+    </button>
+    <button onclick="closeSlideshow()">
+        Close Slideshow
+    </button>
+</div>
+<div class="row">
+    <h5>Timer: </h5>
+    <p id="timer"></p>
+    <button onclick="toggleTimer()">⏯</button>
+    <button onclick="resetTimer()">⏹</button>
+</div>
+<br>
+<p>Church Presenter v0.2.0 (4 Mar 2023) © Sunny Yan 2023</p>
+</div>
+<div class="presenter-page-right">
+    <h2>Preview</h2>
+    <button onclick="startCapture()">
+        Set Capture
+    </button>
+    <video id="preview" class="preview"></video>
+</div>
+</body>
+</html>
