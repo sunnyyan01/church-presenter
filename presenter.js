@@ -73,13 +73,20 @@ function onPlaylistItemClick(clickedItem) {
 
     if (selectedItem)
         selectedItem.classList.remove("selected");
-    clickedItem.classList.add("selected");
-    selectedItem = clickedItem;
+    if (curPlaylistItem.slides)
+        document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+            .classList.remove("selected");
 
     curPlaylistIdx = parseInt(clickedItem.dataset.index);
     curPlaylistItem = playlist[curPlaylistIdx]
     curSlideIdx = 0
     curSlide = playlistItemToSlide( curPlaylistItem, curSlideIdx );
+
+    clickedItem.classList.add("selected");
+    if (curPlaylistItem.slides)
+        document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+            .classList.add("selected");
+    selectedItem = clickedItem;
 
     refreshSlideShow()
 }
@@ -87,15 +94,15 @@ function onPlaylistItemClick(clickedItem) {
 function nextItem() {
     if (curPlaylistIdx === playlist.length - 1)
         return;
-    let playlist = document.getElementById("playlist-items");
-    let nextPlaylistItem = playlist.children[curPlaylistIdx + 1]
+    let playlistElement = document.getElementById("playlist-items");
+    let nextPlaylistItem = playlistElement.children[curPlaylistIdx + 1]
     onPlaylistItemClick(nextPlaylistItem);
 }
 function prevItem() {
     if (curPlaylistIdx === 0)
         return;
-    let playlist = document.getElementById("playlist-items");
-    let nextPlaylistItem = playlist.children[curPlaylistIdx - 1]
+    let playlistElement = document.getElementById("playlist-items");
+    let nextPlaylistItem = playlistElement.children[curPlaylistIdx - 1]
     onPlaylistItemClick(nextPlaylistItem);
 }
 
@@ -112,19 +119,47 @@ function unblank() {
 function prevSlide() {
     if (curSlideIdx === 0)
         return;
+    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        .classList.remove("selected");
     curSlide = playlistItemToSlide(
         playlist[curPlaylistIdx],
         --curSlideIdx,
     )
+    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        .classList.add("selected");
     refreshSlideShow()
 }
 function nextSlide() {
     if (curSlideIdx === curPlaylistItem.slides.length - 1)
         return;
+    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        .classList.remove("selected");
     curSlide = playlistItemToSlide(
         playlist[curPlaylistIdx],
         ++curSlideIdx,
     )
+    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        .classList.add("selected");
+    refreshSlideShow()
+}
+function jumpToSlide() {
+    if (!curPlaylistItem.slides) return;
+
+    let searchTerm = window.prompt("Enter a search term:");
+    let resultIdx = curPlaylistItem.slides.findIndex(
+        slide => slide.includes(searchTerm)
+    );
+    if (resultIdx === -1) return;
+
+    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        .classList.remove("selected");
+    curSlideIdx = resultIdx
+    curSlide = playlistItemToSlide(
+        playlist[curPlaylistIdx],
+        curSlideIdx
+    )
+    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        .classList.add("selected");
     refreshSlideShow()
 }
 
@@ -140,6 +175,7 @@ async function loadPlaylist(file) {
                 playlist.push({
                     template: "welcome",
                     datetime: `${year}年${month}月${day}日上午10時`,
+                    preview: args,
                 })
                 break;
             }
@@ -156,7 +192,8 @@ async function loadPlaylist(file) {
                 } while (!lines[i].endsWith("E"))
                 playlist.push({
                     template: "bible",
-                    title, location, slides
+                    title, location, slides,
+                    preview: title + " - " + location,
                 })
                 break;
             }
@@ -165,15 +202,16 @@ async function loadPlaylist(file) {
                 let slides = []
                 let slide = ""
                 do {
-                    slide += lines[++i]
-                    if ( slide.match(/N|E$/) ) {
-                        slides.push(slide.slice(0, -1))
+                    slide += lines[++i] + "\n"
+                    if ( lines[i].match(/N|E$/) ) {
+                        slides.push(slide.slice(0, -2)) // Remove N|E and \n
                         slide = ""
                     }
                 } while (!lines[i].endsWith("E"))
                 playlist.push({
                     template: "song",
-                    title, name, slides
+                    title, name, slides,
+                    preview: title + " - " + name,
                 })
                 break;
             }
@@ -181,7 +219,8 @@ async function loadPlaylist(file) {
                 let [title] = args
                 playlist.push({
                     template: "title",
-                    title
+                    title,
+                    preview: title
                 })
                 break;
             }
@@ -189,7 +228,8 @@ async function loadPlaylist(file) {
                 let [title, subtitle] = args
                 playlist.push({
                     template: "subtitle",
-                    title, subtitle
+                    title, subtitle,
+                    preview: title + " - " + subtitle,
                 })
                 break;
             }
@@ -208,11 +248,19 @@ async function loadPlaylist(file) {
     let playlistElement = document.getElementById("playlist-items");
     let playlistItemSample = document.getElementById("playlist-item-sample");
     for (let [i, item] of Object.entries(playlist)) {
-        let values = Object.values(item || {});
         let div = playlistItemSample.cloneNode(true);
+
         div.children[0].innerHTML = item.template;
-        div.children[1].innerHTML = item.preview1 || values[1];
-        div.children[2].innerHTML = item.preview2 || values.slice(2);
+        div.children[1].innerHTML = item.preview;
+        if (item.slides) {
+            for (let [s, slide] of Object.entries(item.slides)) {
+                let p = document.createElement("p");
+                p.innerHTML = slide.replaceAll("\n", "");
+                p.id = `slide-preview-i${i}s${s}`;
+                div.appendChild(p);
+            }
+        }
+
         div.dataset.index = i;
         div.classList.remove("hidden")
         div.id = undefined;
@@ -259,30 +307,21 @@ function resetTimer() {
     timerElement.innerText = ""
 }
 
+const KEY_MAP = {
+    "ArrowRight": nextItem,
+    "ArrowDown": nextItem,
+    "ArrowLeft": prevItem,
+    "ArrowUp": prevItem,
+    "PageDown": nextSlide,
+    "PageUp": prevSlide,
+    "B": blank,
+    "b": unblank,
+    "j": jumpToSlide,
+}
 window.addEventListener("keydown", e => {
-    e.preventDefault();
-    switch (e.key) {
-        case "ArrowRight":
-        case "ArrowDown":
-            return nextItem();
-        case "ArrowLeft":
-        case "ArrowUp":
-            return prevItem();
-        case "PageDown":
-            return nextSlide();
-        case "PageUp":
-            return prevSlide();
-        case "B":
-            return blank();
-        case "b":
-            return unblank();
+    let handler = KEY_MAP[e.key];
+    if (handler) {
+        handler();
+        e.preventDefault();
     }
 })
-
-
-async function startCapture() {
-    let captureStream = await navigator.mediaDevices.getDisplayMedia();
-    let video = document.getElementById("preview");
-    video.srcObject = captureStream;
-    video.play();
-}

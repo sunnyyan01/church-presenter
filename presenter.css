@@ -6,9 +6,17 @@ h1,h2,h3,h4,h5,h6,p {
 body {
     display: flex;
     flex-direction: row;
+    overflow-y: hidden;
 }
 .presenter-page-left, .presenter-page-right {
     width: 50%;
+}
+
+.presenter-page-right > iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    user-select: none;
 }
 
 .preview {
@@ -36,6 +44,13 @@ body {
 }
 .playlist-item > * {
     margin: 0px;
+}
+.playlist-item > p {
+    white-space: nowrap;
+    overflow: hidden;
+}
+.playlist-item > p.selected {
+    background-color: cyan;
 }
 
 .row {

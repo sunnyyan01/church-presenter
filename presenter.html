@@ -1,14 +1,14 @@
 <html>
 <head>
 <script src="presenter.js"></script>
+<script src="duplicateSlideShow.js"></script>
 <link href="presenter.css" rel="stylesheet" />
 </head>
 <body>
 <div class="presenter-page-left">
 <div id="playlist-item-sample" class="playlist-item hidden" onClick="onPlaylistItemClick(this);">
-    <h3>welcome</h3>
-    <h1>宣召经文</h1>
-    <p>詩篇145章11-33節 1（大衛的讚美詩。）</p>
+    <h3></h3>
+    <h1></h1>
 </div>
 <h2>Playlist</h2>
 <div id="playlist-items" class="playlist-items">
@@ -30,6 +30,9 @@
         </button>
         <button onclick="nextSlide()">
             Next Slide (PgDn)
+        </button>
+        <button onclick="jumpToSlide()">
+            Jump To Slide (J)
         </button>
     </div>
     <div>
@@ -65,11 +68,12 @@
     <button onclick="resetTimer()">⏹</button>
 </div>
 <br>
-<p>Church Presenter v0.2.0 (4 Mar 2023) © Sunny Yan 2023</p>
+<p>Church Presenter v0.2.1 (14 Mar 2023) © Sunny Yan 2023</p>
 </div>
 <div class="presenter-page-right">
     <h2>Preview</h2>
-    <button onclick="startCapture()">
+    <!--Copied from duplicateSlideShow.html-->
+    <button id="button" onclick="startCapture()">
         Set Capture
     </button>
     <video id="preview" class="preview"></video>
