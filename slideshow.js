@@ -11,13 +11,12 @@ function onChangeSlide({slide}) {
     
     for (let field in slide.fields || {}) {
         let text = slide.fields[field];
-        console.log(`${slide.template}, ${field}, ${text}`)
         if (slide.template === "bible" && field === "text") {
             text = text.replaceAll(/([0-9]+)/g, "<sup>$1</sup>");
         }
-        let elements = selTemplate.getElementsByClassName(field)
-        if (elements)
-            elements[0].innerHTML = text;
+        let element = document.getElementById(`${slide.template}-${field}-field`);
+        if (element)
+            element.innerHTML = text;
     }
 
     for (let element of slide.elements || []) {

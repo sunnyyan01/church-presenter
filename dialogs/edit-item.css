@@ -1,0 +1,48 @@
+.hidden {
+    display: none;
+}
+
+body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+table {
+    width: 90%;
+    margin-bottom: 20px;
+}
+th, td {
+    text-align: left;
+}
+td {
+    display: flex;
+    align-items: center;
+}
+th {
+    padding-right: 10px;
+}
+td > *:first-child {
+    width: 100%;
+}
+td > button {
+    margin-left: 10px;
+}
+
+input[type=text]:invalid {
+    border-color: red;
+}
+
+
+button.large {
+    height: 30px;
+    width: 90%;
+    border-radius: 15px;
+}
+button.small {
+    height: 20px;
+    width: 45px;
+    border-radius: 5px;
+}

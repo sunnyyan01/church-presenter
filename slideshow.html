@@ -4,6 +4,9 @@
 <!-- <script src="https://www.youtube.com/iframe_api"></script> -->
 <script src="slideshow.js"></script>
 <link href="slideshow.css" rel="stylesheet" />
+<link href="common.css" rel="stylesheet" />
+
+<title>Church Presenter | Slideshow</title>
 </head>
 <body>
 <div id="templates" class="templates">
@@ -11,17 +14,19 @@
     <div id="welcome-template" class="template welcome-template">
         <h1>救世軍	樂事圍隊</h1>
         <h1>主日崇拜</h1>
-        <h2 class="datetime">2022年5月1日上午10時</h2>
+        <h2 style="white-space: 0px;">
+            <span id="welcome-year-field">2022</span>年<span id="welcome-month-field">6</span>月<span id="welcome-day-field">11</span>日上午10時
+        </h2>
         <div class="divider"></div>
         <h3>請關掉手機或調到震動模式</h3>
         <h3>安靜心靈敬拜上帝</h3>
     </div>
     <div id="bible-template" class="template bible-template">
         <div class="top-bar">
-            <h2 class="title">宣召经文</h5>
-            <h3 class="location">詩篇145章11-33節</h3>
+            <h2 id="bible-title-field">宣召经文</h5>
+            <h3 id="bible-location-field">詩篇145章11-33節</h3>
         </div>
-        <p class="text scrollable">
+        <p id="bible-text-field" class="scrollable">
             1（大衛的讚美詩。）
             我的神我的王啊，我要尊崇你！我要永永遠遠稱頌你的名！
             2 我要天天稱頌你，也要永永遠遠讚美你的名！
@@ -29,10 +34,10 @@
     </div>
     <div id="song-template" class="template song-template">
         <div class="top-bar">
-            <h2 class="title">宣召经文</h5>
-            <h3 class="name">詩篇145章11-33節</h3>
+            <h2 id="song-title-field">宣召经文</h5>
+            <h3 id="song-name-field">詩篇145章11-33節</h3>
         </div>
-        <p class="lyrics scrollable">
+        <p id="song-lyrics-field" class="scrollable">
             1（大衛的讚美詩。）
             我的神我的王啊，我要尊崇你！我要永永遠遠稱頌你的名！
             2 我要天天稱頌你，也要永永遠遠讚美你的名！
@@ -45,12 +50,12 @@
         <video></video>
     </div>
     <div id="title-template" class="template title-template">
-        <h1 class="title">宣召经文</h1>
+        <h1 id="title-title-field">宣召经文</h1>
     </div>
     <div id="subtitle-template" class="template subtitle-template">
-        <h1 class="title">宣召经文</h1>
+        <h1 id="subtitle-title-field">宣召经文</h1>
         <div class="divider"></div>
-        <h2 class="subtitle">詩篇145章11-33節</h2>
+        <h2 id="subtitle-subtitle-field">詩篇145章11-33節</h2>
     </div>
     <div id="image-template" class="template image-template">
         <img />

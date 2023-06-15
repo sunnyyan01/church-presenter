@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Church Presenter | Item Editor</title>
+    <script src="edit-item.js" charset="UTF-8"></script>
+    <link href="../common.css" rel="stylesheet" />
+    <link href="edit-item.css" rel="stylesheet" />
+</head>
+
+<body>
+    <table id="item-data-table" class="not-hidden">
+        <tr id="item-data-table-row--template">
+            <th>Template</th>
+            <td>
+                <select id="template-selector" onclick="onTemplateChange()">
+                    <option value="welcome">Welcome</option>
+                    <option value="bible">Bible</option>
+                    <option value="song">Song</option>
+                    <option value="title">Title</option>
+                    <option value="subtitle">Title + Subtitle</option>
+                    <option value="image">Image</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="item-data-table-row--year">
+            <th>Year</th>
+            <td>
+                <input type="number" />
+                <button class="small" onclick="autoDate()">Auto</button>
+            </td>
+        </tr>
+        <tr id="item-data-table-row--month">
+            <th>Month</th>
+            <td>
+                <input type="number" />
+                <button class="small" onclick="autoDate()">Auto</button>
+            </td>
+        </tr>
+        <tr id="item-data-table-row--day">
+            <th>Day</th>
+            <td>
+                <input type="number" />
+                <button class="small" onclick="autoDate()">Auto</button>
+            </td>
+        </tr>
+        <tr id="item-data-table-row--title">
+            <th>Title</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--location">
+            <th>Location</th>
+            <td>
+                <input type="text" pattern="^.+ ?\d+(:\d+(-\d+))?$" />
+                <button class="small" onclick="autoBibleFormat()">Auto</button>
+            </td>
+        </tr>
+        <tr id="item-data-table-row--name">
+            <th>Name</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--subtitle">
+            <th>Subtitle</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--source">
+            <th>Source</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--slides">
+            <th>Slides</th>
+            <td><textarea cols="80" rows="20"></textarea></td>
+        </tr>
+        <tr id="item-data-table-row--preview">
+            <th>Preview</th>
+            <td>
+                <input type="text" />
+                <button class="small" onclick="autoPreview()">Auto</button>
+            </td>
+        </tr>
+    </table>
+
+    <button id="save-btn" class="large hidden" onclick="save()">
+        Save & Close
+    </button>
+</body>
+
+</html>

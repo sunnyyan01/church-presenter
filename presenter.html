@@ -1,19 +1,27 @@
 <html>
+
 <head>
+<title>Church Presenter</title>
+
 <script src="presenter.js"></script>
 <script src="duplicateSlideShow.js"></script>
+<link href="common.css" rel="stylesheet" />
 <link href="presenter.css" rel="stylesheet" />
 </head>
+
 <body>
+
 <div class="presenter-page-left">
+
+<h2>Playlist</h2>
 <div id="playlist-item-sample" class="playlist-item hidden" onClick="onPlaylistItemClick(this);">
     <h3></h3>
     <h1></h1>
 </div>
-<h2>Playlist</h2>
 <div id="playlist-items" class="playlist-items">
 
 </div>
+
 <div class="row">
     <h5>Slide Controls: </h5>
     <div>
@@ -43,14 +51,32 @@
             Unblank (B)
         </button>
     </div>
+    <div>
+        <button onclick="editCurItem(false)">
+            Edit Item (Shift + E)
+        </button>
+        <button onclick="editCurItem(true)">
+            Edit Item Adv
+            (Shift&nbsp;+&nbsp;D)
+        </button>
+        <button onclick="addItem()">
+            Add Item (Shift + A)
+        </button>
+    </div>
 </div>
+
 <div class="row">
-    <h5>Import Playlist: </h5>
+    <h5>Playlist: </h5>
+    <button onclick="onOpenBtnClick()">Open</button>
     <input
-        type="file"
-        accept=".txt"
-        onchange="loadPlaylist(this.files[0])"
+        id="playlist-open-picker" class="hidden"
+        type="file" accept=".txt"
+        onchange="openPlaylist(this.files[0])"
     />
+    <button id="save-playlist-btn" onclick="savePlaylist()" disabled>
+        Save
+    </button>
+    <p id="playlist-name">No playlist currently open</p>
 </div>
 <div class="row" id="window-controls">
     <h5>Windows:</h5>
@@ -61,15 +87,19 @@
         Close Slideshow
     </button>
 </div>
+
 <div class="row">
     <h5>Timer: </h5>
     <p id="timer"></p>
     <button onclick="toggleTimer()">⏯</button>
     <button onclick="resetTimer()">⏹</button>
 </div>
-<br>
-<p>Church Presenter v0.2.1 (14 Mar 2023) © Sunny Yan 2023</p>
+
 </div>
+
+<div class="vertical-divider">
+</div>
+
 <div class="presenter-page-right">
     <h2>Preview</h2>
     <!--Copied from duplicateSlideShow.html-->
@@ -77,6 +107,8 @@
         Set Capture
     </button>
     <video id="preview" class="preview"></video>
+
+    <p class="version-info">Church Presenter v0.2.2 (15 Jun 2023) © Sunny Yan 2023</p>
 </div>
 </body>
 </html>

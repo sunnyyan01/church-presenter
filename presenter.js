@@ -1,3 +1,4 @@
+//TODO: Change welcome slide format in slideshow.html
 let curSlide = {
     "template": "blank"
 };
@@ -18,10 +19,10 @@ function refreshSlideShow() {
 function playlistItemToSlide(item, slideIdx = 0) {
     switch (item.template) {
         case "welcome": {
-            let {datetime} = item
+            let {year, month, day} = item
             return {
                 template: "welcome",
-                fields: { datetime },
+                fields: { year, month, day },
             }
         }
         case "bible": {
@@ -91,6 +92,9 @@ function onPlaylistItemClick(clickedItem) {
     refreshSlideShow()
 }
 
+// ===
+// Slide Controls
+// ===
 function nextItem() {
     if (curPlaylistIdx === playlist.length - 1)
         return;
@@ -163,9 +167,48 @@ function jumpToSlide() {
     refreshSlideShow()
 }
 
-async function loadPlaylist(file) {
+function editCurItem(advanced = false) {
+    if (curPlaylistIdx === -1) {
+        alert("Select a slide first!");
+        return;
+    }
+
+    let url = advanced ? "dialogs/edit-item-advanced.html" : "dialogs/edit-item.html";
+    let dialog = window.open(url, "edit-item", "width=800,height=500");
+    setTimeout(() => {
+        dialog.postMessage(
+            { type: "init", idx: curPlaylistIdx, item: curPlaylistItem },
+            "*"
+        );
+    }, 1000);
+}
+function addItem() {
+    if (curPlaylistIdx === -1) {
+        alert("Select a slide first!");
+        return;
+    }
+
+    let dialog = window.open("dialogs/edit-item.html", "edit-item", "width=800,height=500");
+    setTimeout(() => {
+        dialog.postMessage(
+            { type: "init", idx: playlist.length, item: {template: ""} },
+            "*"
+        );
+    }, 1000);
+}
+
+
+// ===
+// Playlist Controls
+// ===
+function onOpenBtnClick() {
+    document.getElementById("playlist-open-picker").click()
+}
+
+async function openPlaylist(file) {
     let text = await file.text();
-    let lines = text.split("\r\n");
+    let newline = text.includes("\r") ? "\r\n" : "\n";
+    let lines = text.split(newline);
     let i = 0
     while (i < lines.length) {
         let [template, ...args] = lines[i].split(",")
@@ -174,8 +217,8 @@ async function loadPlaylist(file) {
                 let [year, month, day] = args
                 playlist.push({
                     template: "welcome",
-                    datetime: `${year}年${month}月${day}日上午10時`,
-                    preview: args,
+                    year, month, day,
+                    preview: args.join("/"),
                 })
                 break;
             }
@@ -263,11 +306,61 @@ async function loadPlaylist(file) {
 
         div.dataset.index = i;
         div.classList.remove("hidden")
-        div.id = undefined;
+        div.id = "";
         playlistElement.appendChild(div);
     }
+
+    document.getElementById("save-playlist-btn").disabled = false;
+    document.getElementById("playlist-name").innerText = `Current playlist: ${file.name}`;
 }
 
+function savePlaylist() {
+    let textFile = "";
+    for (let item of playlist) {
+        switch (item.template) {
+            case "welcome":
+                textFile += `0,${item.year},${item.month},${item.day}\n`;
+                break;
+            case "bible":
+                textFile += `1,${item.title},${item.location}\n`
+                for (let slide of item.slides) {
+                    textFile += `${slide}N\n`;
+                }
+                textFile = textFile.replace(/N\n$/, "E\n");
+                break;
+            case "song":
+                textFile += `2,${item.title},${item.name}\n`
+                for (let slide of item.slides) {
+                    textFile += `${slide}N\n`;
+                }
+                textFile = textFile.replace(/N\n$/, "E\n");
+                break;
+            case "title":
+                textFile += `3,${item.title}\n`;
+                break;
+            case "subtitle":
+                textFile += `4,${item.title},${item.subtitle}\n`;
+                break;
+            case "image":
+                textFile += `5,${item.source}\n`;
+                break;
+        }
+    }
+    let filename = document.getElementById("playlist-open-picker").files[0].name;
+    let exportFile = new File([textFile], filename);
+    let url = URL.createObjectURL(exportFile);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+
+// ===
+// Slideshow Controls
+// ===
 function openSlideshow() {
     slideshowWindow = window.open("slideshow.html", "churchPresenterSlideshow", "popup");
     setTimeout(refreshSlideShow, 1000); //Wait 1s for window to initialise
@@ -282,6 +375,9 @@ function addDuplicateSlideshow() {
     window.open("duplicateSlideshow.html", "", "popup");
 }
 
+// ===
+// Timer Controls
+// ===
 let timer, timerElement, timerStart;
 function toggleTimer() {
     if (timer) {
@@ -307,6 +403,9 @@ function resetTimer() {
     timerElement.innerText = ""
 }
 
+// ===
+// Keyboard Shortcuts
+// ===
 const KEY_MAP = {
     "ArrowRight": nextItem,
     "ArrowDown": nextItem,
@@ -314,14 +413,71 @@ const KEY_MAP = {
     "ArrowUp": prevItem,
     "PageDown": nextSlide,
     "PageUp": prevSlide,
-    "B": blank,
+    "SB": blank,
     "b": unblank,
+    "SE": () => editCurItem(false),
+    "SD": () => editCurItem(true),
+    "SA": addItem,
     "j": jumpToSlide,
 }
 window.addEventListener("keydown", e => {
-    let handler = KEY_MAP[e.key];
+    let key = (
+        (e.shiftKey ? "S" : "") +
+        (e.ctrlKey ? "C" : "") +
+        (e.altKey ? "A" : "") +
+        e.key
+    )
+    let handler = KEY_MAP[key];
     if (handler) {
         handler();
         e.preventDefault();
+    }
+})
+
+
+// ===
+// Message Receiving
+// ===
+function handleItemEditorClose(data) {
+    let {idx, item} = data;
+
+    if (curPlaylistIdx == idx)
+        curPlaylistItem = item;
+    
+    playlist[idx] = item;
+    
+    let playlistItems = document.getElementById("playlist-items");
+    let div = playlistItems.children[idx];
+    if (!div) {
+        // New item - clone the previous div
+        div = playlistItems.lastChild.cloneNode(true);
+        div.dataset.index++;
+        playlistItems.appendChild(div);
+    }
+    div.children[0].innerHTML = item.template;
+    div.children[1].innerHTML = item.preview;
+    if (item.slides) {
+        for (let e of Array.from(div.children)) {
+            if (e.tagName === "P") {
+                div.removeChild(e);
+            }
+        }
+        for (let [s, slide] of Object.entries(item.slides)) {
+            p = document.createElement("p");
+            p.id = `slide-preview-i${idx}s${s}`;
+            p.innerHTML = slide.replaceAll("\n", "");
+            if (curPlaylistIdx == idx && curSlideIdx == s) {
+                p.classList.add("selected");
+            }
+            div.appendChild(p);
+        }
+    }
+}
+
+window.addEventListener("message", e => {
+    switch(e.data.type) {
+        case "item-editor-close":
+            handleItemEditorClose(e.data);
+            break;
     }
 })
