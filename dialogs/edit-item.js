@@ -69,7 +69,6 @@ function autoDate() {
     setValue("datetime", datetime);
 }
 
-/*
 function autoBibleFormat() {
     if (getCurValue("template") != "bible")
         return;
@@ -86,7 +85,16 @@ function autoBibleFormat() {
         }
     }
 }
-*/
+
+async function autoSlides() {
+    if (getCurValue("template") != "bible")
+        return;
+    
+    let location = getCurValue("location");
+    let resp = await fetch(`http://localhost:3000/bible-lookup?loc=${location}`);
+    let text = await resp.text();
+    setValue("slides", text);
+}
 
 function autoPreview() {
     let preview = "";
@@ -108,13 +116,14 @@ function autoPreview() {
             break;
     }
     if (preview) {
-        setValue("preview", preview);
+        setValue("preview", preview.replaceAll("<br>", "🆕"));
     }
 }
 
 function allAuto() {
     autoDate();
     autoPreview();
+    autoSlides();
 }
 
 function save() {

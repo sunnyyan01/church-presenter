@@ -96,14 +96,17 @@ h1,h2,h3,h4,h5,h6,p {
     justify-content: space-between;
     align-items: center;
 }
-.top-bar .title::first-line {
+.top-bar h2::first-line {
     font-size: unset;
 }
-.top-bar .title {
+.top-bar h2 {
     margin-left: 10%;
     font-size: 70px;
 }
-.bible-template .text {
+.top-bar h3 {
+    text-align: right;
+}
+.bible-template p {
     width: 100%;
     white-space: pre-line;
 }
@@ -122,7 +125,7 @@ h1,h2,h3,h4,h5,h6,p {
     text-align: center;
 }
 
-.song-template .lyrics {
+.song-template p {
     height: 100%;
     white-space: pre-line;
     text-align: center;

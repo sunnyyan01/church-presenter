@@ -67,14 +67,15 @@
 
 <div class="row">
     <h5>Playlist: </h5>
-    <button onclick="onOpenBtnClick()">Open</button>
+    <button onclick="onOpenBtnClick()">Open .txt</button>
     <input
         id="playlist-open-picker" class="hidden"
         type="file" accept=".txt"
         onchange="openPlaylist(this.files[0])"
     />
+    <button onclick="pastePlaylist()">Paste .txt</button>
     <button id="save-playlist-btn" onclick="savePlaylist()" disabled>
-        Save
+        Save as .txt
     </button>
     <p id="playlist-name">No playlist currently open</p>
 </div>
@@ -108,7 +109,7 @@
     </button>
     <video id="preview" class="preview"></video>
 
-    <p class="version-info">Church Presenter v0.2.2 (15 Jun 2023) © Sunny Yan 2023</p>
+    <p class="version-info">Church Presenter v0.2.3 (21 Jun 2023) © Sunny Yan 2023</p>
 </div>
 </body>
 </html>

@@ -236,7 +236,7 @@ async function openPlaylist(file) {
                 playlist.push({
                     template: "bible",
                     title, location, slides,
-                    preview: title + " - " + location,
+                    preview: (title + " - " + location).replaceAll("<br>", "🆕"),
                 })
                 break;
             }
@@ -254,7 +254,7 @@ async function openPlaylist(file) {
                 playlist.push({
                     template: "song",
                     title, name, slides,
-                    preview: title + " - " + name,
+                    preview: (title + " - " + name).replaceAll("<br>", "🆕"),
                 })
                 break;
             }
@@ -314,6 +314,10 @@ async function openPlaylist(file) {
     document.getElementById("playlist-name").innerText = `Current playlist: ${file.name}`;
 }
 
+function pastePlaylist() {
+    window.open("dialogs/paste-playlist.html", "paste-playlist", "width=800,height=700");
+}
+
 function savePlaylist() {
     let textFile = "";
     for (let item of playlist) {
@@ -345,13 +349,12 @@ function savePlaylist() {
                 textFile += `5,${item.source}\n`;
                 break;
         }
-    }
-    let filename = document.getElementById("playlist-open-picker").files[0].name;
-    let exportFile = new File([textFile], filename);
+    };
+    let exportFile = new File([textFile], "playlist.txt");
     let url = URL.createObjectURL(exportFile);
     let a = document.createElement("a");
     a.href = url;
-    a.download = filename;
+    a.download = exportFile.name;
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
@@ -441,8 +444,11 @@ window.addEventListener("keydown", e => {
 function handleItemEditorClose(data) {
     let {idx, item} = data;
 
-    if (curPlaylistIdx == idx)
+    if (curPlaylistIdx == idx) {
         curPlaylistItem = item;
+        curSlide = playlistItemToSlide(item, curSlideIdx);
+        refreshSlideShow();
+    }
     
     playlist[idx] = item;
     
@@ -474,10 +480,19 @@ function handleItemEditorClose(data) {
     }
 }
 
+function handlePastePlaylist(e) {
+    let {playlist} = e;
+    let file = new File([playlist], "playlist.txt");
+    openPlaylist(file);
+}
+
 window.addEventListener("message", e => {
     switch(e.data.type) {
         case "item-editor-close":
             handleItemEditorClose(e.data);
+            break;
+        case "paste-playlist":
+            handlePastePlaylist(e.data);
             break;
     }
 })
