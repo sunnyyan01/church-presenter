@@ -89,11 +89,16 @@ function autoBibleFormat() {
 async function autoSlides() {
     if (getCurValue("template") != "bible")
         return;
+
+    let loadingDiv = document.getElementById("autoSlides-loading");
+    loadingDiv.classList.remove("hidden");
     
     let location = getCurValue("location");
     let resp = await fetch(`http://localhost:3000/bible-lookup?loc=${location}`);
     let text = await resp.text();
     setValue("slides", text);
+
+    loadingDiv.classList.add("hidden");
 }
 
 function autoPreview() {

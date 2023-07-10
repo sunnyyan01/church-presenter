@@ -45,6 +45,10 @@ export function bibleLookupEndpoint(req, url, res) {
             bible_res.on('end', () => {
                 let dom = new JSDOM(data);
                 let div = dom.window.document.querySelector("div.passage-content");
+                if (!div) {
+                    serverTextResp(res, "Couldn't find requested passage", 500);
+                    return;
+                }
                 let text = "";
                 for (let span of div.getElementsByTagName("span")) {
                     if (span.classList.contains("text"))

@@ -205,7 +205,15 @@ function onOpenBtnClick() {
     document.getElementById("playlist-open-picker").click()
 }
 
+function closePlaylist() {
+    let playlistElement = document.getElementById("playlist-items");
+    playlistElement.replaceChildren();
+    playlist = [];
+}
+
 async function openPlaylist(file) {
+    closePlaylist();
+
     let text = await file.text();
     let newline = text.includes("\r") ? "\r\n" : "\n";
     let lines = text.split(newline);
