@@ -1,4 +1,3 @@
-//TODO: Change welcome slide format in slideshow.html
 let curSlide = {
     "template": "blank"
 };
@@ -504,3 +503,27 @@ window.addEventListener("message", e => {
             break;
     }
 })
+
+async function refreshTranslations(lang) {
+    if (lang) {
+        localStorage.setItem("lang", lang);
+    } else {
+        lang = localStorage.getItem("lang") || "en";
+        document.getElementById("lang-selector").value = lang;
+    }
+    let resp = await fetch(`./translations/${lang}.csv`);
+    if (resp.ok) {
+        let text = (await resp.text()).trim();
+        let sep = text.includes("\r") ? "\r\n" : "\n";
+        for (let line of text.split(sep)) {
+            let [id, string] = line.split(",");
+            try {
+                document.getElementById(id).innerHTML = string;
+            } catch {
+                console.log(`Error setting ${id}`);
+            }
+        }
+    }
+}
+
+window.addEventListener("load", e => refreshTranslations());

@@ -1,0 +1,23 @@
+playlist-header,流程
+control-categories--slide,Slide Controls
+prev-item-btn-label,上一个程序
+next-item-btn-label,下一个程序
+prev-slide-btn-label,上一页
+next-slide-btn-label,下一页
+jump-to-slide-btn-label,跳去页
+blank-btn-label,黑屏
+unblank-btn-label,取消黑屏
+edit-item-btn-label,编辑程序
+edit-item-adv-btn-label,编辑程序，高级
+add-item-btn-label,Add Item,添加程序
+control-categories--playlist,Playlist
+open-playlist-btn,打开流程
+new-playlist-btn,创新流程
+save-playlist-btn,保存流程
+playlist-name,现在没开流程
+control-categories--slideshow,Windows
+open-slideshow-btn,Open Slideshow
+close-slideshow-btn,Close Slideshow
+control-categories--timer,计时器
+preview-header,Preview
+control-categories--language,语言
