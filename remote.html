@@ -1,0 +1,44 @@
+<html>
+
+<head>
+<title>Church Presenter</title>
+
+<script src="remote.js"></script>
+<link href="common.css" rel="stylesheet" />
+<link href="remote.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="section" style="height: 20%; width: 100%">
+        <button onclick="wsConnect()">Connect to server</button>
+        <p id="server-connect-status"></p>
+    </div>
+    <div class="section" style="width: calc(50%-10px);">
+        <button onclick="sendKey('ArrowUp')">
+            Prev ↑
+        </button>
+        <h5>Item</h5>
+        <button onclick="sendKey('ArrowDown')">
+            Next ↓
+        </button>
+    </div>
+    <div class="section" style="width: calc(50%-10px);">
+        <button onclick="sendKey('PageUp')">
+            Prev ↑
+        </button>
+        <h5>Slide</h5>
+        <button onclick="sendKey('PageDown')">
+            Next ↓
+        </button>
+    </div>
+    <div class="section" style="width: 100%">
+        <button onclick="sendKey('SB')">
+            Blank
+        </button>
+        <button onclick="sendKey('b')">
+            Unblank
+        </button>
+    </div>
+</body>
+
+</html>

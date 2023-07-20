@@ -1,11 +1,12 @@
 import { createServer } from "http";
 import { readFile } from "fs";
-import 'ws';
+import { WebSocketServer } from 'ws';
 import { bibleLookupEndpoint } from "./server/bible.js";
 import { extToMimeType, serverResp, serverTextResp } from "./server/common.js";
 
-const hostname = '127.0.0.1';
+const hostname = process.env.HOST || '127.0.0.1';
 const port = 3000;
+const wsPort = 3001;
 
 const endpointMap = {
     "/bible-lookup": bibleLookupEndpoint,
@@ -32,5 +33,28 @@ const server = createServer((req, res) => {
 });
 
 server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+    console.log(`Server running at http://${hostname}:${port}/`);
+});
+
+const wss = new WebSocketServer({ server, clientTracking: true });
+wss.shouldHandle = req => {
+    let url = new URL(req.url, `ws://${req.headers.host}`);
+    console.log(url.pathname);
+    return url.pathname.match(/\/ws\/(presenter|remote|slideshow)/);
+}
+
+wss.on('connection', (ws, req) => {
+    let url = new URL(req.url, `http://${req.headers.host}`);
+    ws.origin = url.pathname.replace("/ws/","");
+
+    ws.on('error', console.error);
+  
+    ws.on('message', data => {
+        let {dest, message} = JSON.parse(data);
+        wss.clients.forEach(client => {
+            if (client.origin === dest) {
+                client.send(JSON.stringify({origin: ws.origin, message}))
+            }
+        })
+    });
 });

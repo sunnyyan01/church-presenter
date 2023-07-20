@@ -6,6 +6,7 @@ let curPlaylistIdx = -1;
 let curSlideIdx = 0;
 let selectedItem = null;
 let playlist = [];
+let ws;
 
 let slideshowWindow;
 function refreshSlideShow() {
@@ -182,11 +183,6 @@ function editCurItem(advanced = false) {
     }, 1000);
 }
 function addItem() {
-    if (curPlaylistIdx === -1) {
-        alert("Select a slide first!");
-        return;
-    }
-
     let dialog = window.open("dialogs/edit-item.html", "edit-item", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
@@ -464,6 +460,7 @@ function handleItemEditorClose(data) {
     if (!div) {
         // New item - clone the previous div
         div = playlistItems.lastChild.cloneNode(true);
+        div.classList.remove("selected");
         div.dataset.index++;
         playlistItems.appendChild(div);
     }
@@ -527,3 +524,24 @@ async function refreshTranslations(lang) {
 }
 
 window.addEventListener("load", e => refreshTranslations());
+
+function wsConnect() {
+    let { hostname, port } = window.location;
+    ws = new WebSocket(`ws://${hostname}:${port}/ws/presenter`);
+    ws.addEventListener("open", e => {
+        let p = document.getElementById("server-connect-status");
+        p.innerText = "Connected";
+    });
+    ws.addEventListener("message", e => {
+        let {origin, message} = JSON.parse(e.data);
+        if (message.type === "shortkey") {
+            let handler = KEY_MAP[message.key];
+            if (handler)
+                handler();
+        }
+    });
+    ws.addEventListener("close", e => {
+        let p = document.getElementById("server-connect-status");
+        p.innerText = "Connection lost";
+    })
+}
