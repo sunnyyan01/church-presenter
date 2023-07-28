@@ -5,6 +5,29 @@ body {
     overflow-y: hidden;
 }
 
+.context-menu {
+    position: absolute;
+    border: 1px solid black;
+    border-radius: 20px;
+    background-color: white;
+    padding: 2px;
+}
+.context-menu button {
+    background-color: rgba(0,255,255,0.5);
+    border: none;
+}
+.context-menu button:hover {
+    background-color: rgba(0,255,255,1);
+}
+.context-menu button:first-child {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+.context-menu button:last-child {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
 .section {
     display: flex;
     flex-direction: column;

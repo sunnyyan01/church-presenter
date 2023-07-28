@@ -10,9 +10,44 @@ body {
     justify-content: center;
 }
 
-table {
-    width: 90%;
+.toggle-button-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 20px;
+}
+.toggle-button-group button.toggle-button {
+    height: 30px;
+    width: 200px;
+    border: 1px solid grey;
+    border-top: 0px;
+    border-bottom: 0px;
+}
+.toggle-button-group button.toggle-button:first-child {
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-left: 0px;
+}
+.toggle-button-group button.toggle-button:last-child {
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    border-right: 0px;
+}
+button.toggle-button.selected {
+    background-color: rgba(0,255,255,0.5);
+    pointer-events: none;
+}
+button.toggle-button:hover {
+    background-color: rgba(0,255,255,1);
+}
+
+table#item-data-table, textarea#json-editor {
+    margin-bottom: 20px;
+}
+
+table#item-data-table {
+    width: 90%;
 }
 
 th,

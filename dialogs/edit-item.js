@@ -1,19 +1,32 @@
 let itemIdx;
+let editorMode = "quick";
 
-window.addEventListener("message", e => {
-    if (e.data.type != "init")
-        return;
-    
-    itemIdx = e.data.idx;
-    let itemData = e.data.item;
-
+function dataTableToItem() {
+    let item = {};
     let table = document.getElementById("item-data-table");
+    for (let row of table.rows) {
+        if (!row.classList.contains("hidden")) {
+            let key = row.id.replace("item-data-table-row--", "");
+            let valueElement = row.children[1].children[0];
+
+            if (key === "slides") {
+                item[key] = valueElement.value.split(/N\s*\n/);
+            } else {
+                item[key] = valueElement.value;
+            }
+        }
+    }
+    return item;
+}
+function itemToDataTable(itemData) {
+    let table = document.getElementById("item-data-table");
+    table.classList.add("hidden");
     for (let row of table.rows) {
         let key = row.id.replace("item-data-table-row--","");
         let val = itemData[key];
 
         if (val === undefined) {
-            if (key != "preview") // Preview should not be ever hidden
+            if (key !== "preview") // Preview should not be ever hidden
                 row.classList.add("hidden");
             continue;
         }
@@ -25,8 +38,18 @@ window.addEventListener("message", e => {
             valueElement.value = val;
         }
     }
-
     table.classList.remove("hidden");
+}
+
+window.addEventListener("message", e => {
+    if (e.data.type != "init")
+        return;
+    
+    itemIdx = e.data.idx;
+    let itemData = e.data.item;
+
+    itemToDataTable(itemData);
+
     document.getElementById("save-btn").classList.remove("hidden");
 })
 
@@ -37,6 +60,36 @@ function getCurValue(key) {
 function setValue(key, val) {
     let row = document.getElementById(`item-data-table-row--${key}`);
     row.children[1].children[0].value = val;
+}
+
+function switchMode(button) {
+    let jsonEditor = document.getElementById("json-editor")
+
+    if (button.dataset.mode === "quick") {
+        let itemData;
+        try {
+            itemData = JSON.parse(jsonEditor.value);
+        } catch (e) {
+            console.error(e);
+            alert("Invalid JSON, please correct before changing");
+            return;
+        }
+        for (let c of button.parentElement.children)
+            c.classList.remove("selected");
+        button.classList.add("selected");
+        jsonEditor.classList.add("hidden");
+        itemToDataTable(itemData);
+        document.getElementById("item-data-table").classList.remove("hidden");
+    } else { // "json"
+        for (let c of button.parentElement.children)
+            c.classList.remove("selected");
+        button.classList.add("selected");
+        document.getElementById("item-data-table").classList.add("hidden");
+        jsonEditor.value = JSON.stringify(dataTableToItem());
+        jsonEditor.classList.remove("hidden");
+    }
+
+    editorMode = button.dataset.mode;
 }
 
 function onTemplateChange() {
@@ -86,8 +139,10 @@ function autoBibleFormat() {
     }
 }
 
-async function autoSlides() {
+async function autoSlides(force = false) {
     if (getCurValue("template") != "bible")
+        return;
+    if (!force && getCurValue("slides"))
         return;
 
     let loadingDiv = document.getElementById("autoSlides-loading");
@@ -96,7 +151,11 @@ async function autoSlides() {
     let location = getCurValue("location");
     let resp = await fetch(`http://localhost:3000/bible-lookup?loc=${location}`);
     let text = await resp.text();
-    setValue("slides", text);
+    if (resp.ok) {
+        setValue("slides", text);
+    } else {
+        alert("Error: " + text);
+    }
 
     loadingDiv.classList.add("hidden");
 }
@@ -126,25 +185,25 @@ function autoPreview() {
 }
 
 function allAuto() {
+    if (editorMode === "json")
+        return;
+
     autoDate();
     autoPreview();
     autoSlides();
+    return true;
 }
 
 function save() {
-    let item = {};
-    let table = document.getElementById("item-data-table");
-    for (let row of table.rows) {
-        if (!row.classList.contains("hidden")) {
-            let key = row.id.replace("item-data-table-row--", "");
-            let valueElement = row.children[1].children[0];
-
-            if (key === "slides") {
-                item[key] = valueElement.value.split(/N\s*\n/);
-            } else {
-                item[key] = valueElement.value;
-            }
-        }
+    let item;
+    try {
+        item = editorMode === "quick"
+            ? dataTableToItem()
+            : JSON.parse(document.getElementById("json-editor").value);
+    } catch (e) {
+        console.error(e);
+        alert("Error parsing JSON, please fix before saving");
+        return true;
     }
 
     window.opener.postMessage(
@@ -152,11 +211,13 @@ function save() {
     )
 
     window.close();
+
+    return true;
 }
 
 const KEY_MAP = {
-    "SA": allAuto,
-    "SS": save,
+    "Ca": allAuto,
+    "Cs": save,
 }
 window.addEventListener("keydown", e => {
     let key = (
@@ -167,7 +228,7 @@ window.addEventListener("keydown", e => {
     )
     let handler = KEY_MAP[key];
     if (handler) {
-        handler();
-        e.preventDefault();
+        if (handler())
+            e.preventDefault();
     }
 })

@@ -13,9 +13,14 @@
 
 <div class="section playlist-section">
     <h1 id="playlist-header"></h2>
-    <div id="playlist-item-sample" class="playlist-item hidden" onClick="onPlaylistItemClick(this);">
+    <div id="playlist-item-sample" class="playlist-item hidden">
         <h4></h4>
         <h2></h2>
+    </div>
+    <div id="playlist-item-context-menu" class="context-menu hidden">
+        <button data-action="edit">
+            Edit
+        </button>
     </div>
     <div id="playlist-items" class="playlist-items">
     </div>
@@ -71,22 +76,18 @@
             </div>
             <div>
                 <button onclick="blank()">
-                    <span id="blank-btn-label"></span> (Shift + B)
+                    <span id="blank-btn-label"></span> (Ctrl + B)
                 </button>
                 <button onclick="unblank()">
                     <span id="unblank-btn-label"></span> (B)
                 </button>
             </div>
             <div>
-                <button onclick="editCurItem(false)">
-                    <span id="edit-item-btn-label"></span> (Shift + E)
-                </button>
-                <button onclick="editCurItem(true)">
-                    <span id="edit-item-adv-btn-label"></span>
-                    (Shift&nbsp;+&nbsp;D)
+                <button onclick="editItem()">
+                    <span id="edit-item-btn-label"></span> (Ctrl + E)
                 </button>
                 <button onclick="addItem()">
-                    <span id="add-item-btn-label"></span> (Shift + A)
+                    <span id="add-item-btn-label"></span> (Ctrl + A)
                 </button>
             </div>
         </td>
@@ -130,7 +131,7 @@
     </tr>
 </table>
 
-<p class="version-info">Church Presenter v0.3.1 (18 Jul 2023) © Sunny Yan 2023</p>
+<p class="version-info">Church Presenter v0.3.2 (28 Jul 2023) © Sunny Yan 2023</p>
 
 </body>
 </html>

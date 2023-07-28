@@ -9,7 +9,16 @@
 </head>
 
 <body>
-    <table id="item-data-table" class="not-hidden">
+    <div class="toggle-button-group">
+        <button onclick="switchMode(this)" class="toggle-button selected" data-mode="quick">
+            Quick Editor
+        </button>
+        <button onclick="switchMode(this)" class="toggle-button" data-mode="json">
+            JSON Editor
+        </button>
+    </div>
+
+    <table id="item-data-table">
         <tr id="item-data-table-row--template">
             <th>Template</th>
             <td>
@@ -70,8 +79,8 @@
         <tr id="item-data-table-row--slides">
             <th>Slides</th>
             <td>
-                <textarea cols="80" rows="20"></textarea>
-                <button class="small" onclick="autoSlides()">Auto</button>
+                <textarea cols="80" rows="15"></textarea>
+                <button class="small" onclick="autoSlides(true)">Auto</button>
                 <div id="autoSlides-loading" class="loading-backdrop hidden">
                     <div class="loading-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
                     <p>Please wait...</p>
@@ -86,6 +95,9 @@
             </td>
         </tr>
     </table>
+
+    <textarea id="json-editor" class="hidden" cols="80" rows="25">
+    </textarea>
 
     <button id="save-btn" class="large hidden" onclick="save()">
         Save & Close
