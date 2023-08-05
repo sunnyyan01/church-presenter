@@ -1,12 +1,18 @@
 let curSlide = {
-    "template": "blank"
+    template: "blank",
 };
-let curPlaylistItem = curSlide;
-let curPlaylistIdx = -1;
+let curPlaylistItem = {
+    template: "blank",
+    id: -1,
+    idx: -1,
+};
 let curSlideIdx = 0;
 let selectedItem = null;
-let playlist = [];
+let playlist = {};
 let ws;
+let nextItemId = 0;
+
+let playlistElement, playlistItemSample;
 
 let slideshowWindow;
 function refreshSlideShow() {
@@ -71,16 +77,48 @@ function playlistItemToSlide(item, slideIdx = 0) {
 function openPlaylistItemContextMenu(e) {
     e.preventDefault();
     e.stopPropagation();
-    const idx = e.currentTarget.dataset.index;
+    let {id, idx} = e.currentTarget.dataset;
+    idx = parseInt(idx);
 
     let contextMenu = document.getElementById("playlist-item-context-menu");
 
     for (let button of contextMenu.children) {
-        if (button.dataset.action === "edit") {
-            button.onclick = () => {
-                editItem(idx);
-                closePlaylistItemContextMenu();
-            }
+        switch (button.dataset.action) {
+            case "edit":
+                button.onclick = () => {
+                    editItem(id);
+                    closePlaylistItemContextMenu();
+                }
+                break;
+            case "move-up":
+                button.onclick = () => {
+                    movePlaylistItem(id, -1);
+                    closePlaylistItemContextMenu();
+                }
+                break;
+            case "move-down":
+                button.onclick = () => {
+                    movePlaylistItem(id, 1);
+                    closePlaylistItemContextMenu();
+                }
+                break;
+            case "insert-above":
+                button.onclick = () => {
+                    addItem(idx);
+                    closePlaylistItemContextMenu();
+                }
+                break;
+            case "insert-below":
+                button.onclick = () => {
+                    addItem(idx + 1);
+                    closePlaylistItemContextMenu();
+                }
+                break;
+            case "delete":
+                button.click = () => {
+                    movePlaylistItem(id, 0);
+                    closePlaylistItemContextMenu();
+                }
         }
     }
 
@@ -97,45 +135,115 @@ function closePlaylistItemContextMenu() {
 document.addEventListener("click", closePlaylistItemContextMenu);
 
 function onPlaylistItemClick(e) {
-    if (e.currentTarget.dataset.index == curPlaylistIdx)
+    if (e.currentTarget.dataset.id == curPlaylistItem.id)
         return;
 
     if (selectedItem)
         selectedItem.classList.remove("selected");
     if (curPlaylistItem.slides)
-        document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
             .classList.remove("selected");
 
-    curPlaylistIdx = parseInt(e.currentTarget.dataset.index);
-    curPlaylistItem = playlist[curPlaylistIdx]
-    curSlideIdx = 0
+    let id = parseInt(e.currentTarget.dataset.id);
+    curPlaylistItem = playlist[id];
+    curPlaylistItem.idx = parseInt(e.currentTarget.dataset.idx);
+    curSlideIdx = 0;
     curSlide = playlistItemToSlide( curPlaylistItem, curSlideIdx );
 
     e.currentTarget.classList.add("selected");
     if (curPlaylistItem.slides)
-        document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+        document.getElementById(`slide-preview-i${id}s${curSlideIdx}`)
             .classList.add("selected");
     selectedItem = e.currentTarget;
 
     refreshSlideShow()
 }
 
+function addPlaylistItemToDOM(id, idx = -1) {
+    let div = playlistItemSample.cloneNode(true);
+
+    div.classList.remove("hidden");
+    div.id = "";
+    div.dataset.id = id;
+    div.dataset.idx = idx === -1 ? playlistElement.children.length : idx;
+
+    div.addEventListener("click", onPlaylistItemClick);
+    div.addEventListener("contextmenu", openPlaylistItemContextMenu);
+
+    if (idx === -1) {
+        playlistElement.appendChild(div);
+    } else if (idx === 0) {
+        playlistElement.insertAdjacentElement("afterBegin", div);
+    } else {
+        playlistElement.children[idx - 1].insertAdjacentElement("afterEnd", div);
+    }
+
+    return div;
+}
+function editPlaylistItemInDOM(item) {
+    let idx = item.idx;
+    let div = playlistElement.children[idx];
+
+    div.children[0].innerHTML = item.template;
+    div.children[1].innerHTML = item.preview;
+    if (item.slides) {
+        for (let e of Array.from(div.children)) {
+            if (e.tagName === "P") {
+                div.removeChild(e);
+            }
+        }
+        for (let [s, slide] of Object.entries(item.slides)) {
+            p = document.createElement("p");
+            p.id = `slide-preview-i${item.id}s${s}`;
+            p.innerHTML = slide.replaceAll("\n", "");
+            if (curPlaylistItem.id == item.id && curSlideIdx == s) {
+                p.classList.add("selected");
+            }
+            div.appendChild(p);
+        }
+    }
+}
+function movePlaylistItem(id, offset) {
+    let oldIndex = parseInt(playlist[id].idx);
+
+    if (offset === 0) { // Delete item
+        delete playlist[id];
+        playlistElement.removeChild( playlistElement.children[oldIndex] );
+    } else {
+        let newIndex = oldIndex + offset;
+        if (newIndex < 0 || newIndex >= playlist.length)
+            return;
+
+        let where = offset > 0 ? "afterEnd" : "beforeBegin";
+        playlistElement.children[newIndex].insertAdjacentElement(
+            where, playlistElement.children[oldIndex]
+        );
+    }
+
+    // Reevaluate the index of every playlist item
+    for (let [idx, e] of Object.entries(Array.from(playlistElement.children))) {
+        e.dataset.idx = idx;
+        playlist[e.dataset.id].idx = idx;
+        if (curPlaylistItem.id === e.dataset.id) {
+            curPlaylistItem.idx = idx;
+        }
+    }
+}
+
 // ===
 // Slide Controls
 // ===
 function nextItem() {
-    if (curPlaylistIdx === playlist.length - 1)
+    if (curPlaylistItem.idx === playlist.length - 1)
         return;
-    let playlistElement = document.getElementById("playlist-items");
-    let nextPlaylistItem = playlistElement.children[curPlaylistIdx + 1]
-    onPlaylistItemClick(nextPlaylistItem);
+    let nextPlaylistItem = playlistElement.children[curPlaylistItem.idx + 1]
+    nextPlaylistItem.click();
 }
 function prevItem() {
-    if (curPlaylistIdx === 0)
+    if (curPlaylistItem.idx === 0)
         return;
-    let playlistElement = document.getElementById("playlist-items");
-    let nextPlaylistItem = playlistElement.children[curPlaylistIdx - 1]
-    onPlaylistItemClick(nextPlaylistItem);
+    let prevPlaylistItem = playlistElement.children[curPlaylistItem.idx - 1]
+    prevPlaylistItem.click();
 }
 
 function blank() {
@@ -151,26 +259,20 @@ function unblank() {
 function prevSlide() {
     if (curSlideIdx === 0)
         return;
-    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
         .classList.remove("selected");
-    curSlide = playlistItemToSlide(
-        playlist[curPlaylistIdx],
-        --curSlideIdx,
-    )
-    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+    curSlide = playlistItemToSlide(curPlaylistItem, --curSlideIdx);
+    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
         .classList.add("selected");
     refreshSlideShow()
 }
 function nextSlide() {
     if (curSlideIdx === curPlaylistItem.slides.length - 1)
         return;
-    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
         .classList.remove("selected");
-    curSlide = playlistItemToSlide(
-        playlist[curPlaylistIdx],
-        ++curSlideIdx,
-    )
-    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+    curSlide = playlistItemToSlide(curPlaylistItem, ++curSlideIdx);
+    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
         .classList.add("selected");
     refreshSlideShow()
 }
@@ -183,25 +285,22 @@ function jumpToSlide() {
     );
     if (resultIdx === -1) return;
 
-    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
         .classList.remove("selected");
     curSlideIdx = resultIdx
-    curSlide = playlistItemToSlide(
-        playlist[curPlaylistIdx],
-        curSlideIdx
-    )
-    document.getElementById(`slide-preview-i${curPlaylistIdx}s${curSlideIdx}`)
+    curSlide = playlistItemToSlide(curPlaylistItem, curSlideIdx);
+    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
         .classList.add("selected");
     refreshSlideShow()
 }
 
-function editItem(idx = null) {
-    if (idx === null) {
-        if (curPlaylistIdx === -1) {
+function editItem(id = null) {
+    if (id === null) {
+        if (curPlaylistItem.id === -1) {
             alert("Select a slide first!");
             return;
         } else {
-            idx = curPlaylistIdx;
+            id = curPlaylistItem.id;
         }
     }
 
@@ -209,16 +308,16 @@ function editItem(idx = null) {
     let dialog = window.open(url, "edit-item", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
-            { type: "init", idx, item: playlist[idx] },
+            { type: "init", item: playlist[id] },
             "*"
         );
     }, 1000);
 }
-function addItem() {
+function addItem(idx = playlist.length) {
     let dialog = window.open("dialogs/edit-item.html", "edit-item", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
-            { type: "init", idx: playlist.length, item: {template: ""} },
+            { type: "init", item: {id: "new", idx, template: ""} },
             "*"
         );
     }, 1000);
@@ -235,11 +334,17 @@ function onOpenBtnClick() {
 function closePlaylist() {
     let playlistElement = document.getElementById("playlist-items");
     playlistElement.replaceChildren();
-    playlist = [];
+    playlist = {};
+    nextItemId = 0;
 }
 
 async function openPlaylist(file) {
     closePlaylist();
+
+    const push = item => {
+        id = nextItemId++;
+        playlist[id] = {id, idx: id, ...item};
+    }
 
     let text = await file.text();
     let newline = text.includes("\r") ? "\r\n" : "\n";
@@ -250,7 +355,7 @@ async function openPlaylist(file) {
         switch (template) {
             case "0": {
                 let [year, month, day] = args
-                playlist.push({
+                push({
                     template: "welcome",
                     year, month, day,
                     preview: args.join("/"),
@@ -268,7 +373,7 @@ async function openPlaylist(file) {
                         slide = ""
                     }
                 } while (!lines[i].endsWith("E"))
-                playlist.push({
+                push({
                     template: "bible",
                     title, location, slides,
                     preview: (title + " - " + location).replaceAll("<br>", "🆕"),
@@ -286,7 +391,7 @@ async function openPlaylist(file) {
                         slide = ""
                     }
                 } while (!lines[i].endsWith("E"))
-                playlist.push({
+                push({
                     template: "song",
                     title, name, slides,
                     preview: (title + " - " + name).replaceAll("<br>", "🆕"),
@@ -295,7 +400,7 @@ async function openPlaylist(file) {
             }
             case "3": {
                 let [title] = args
-                playlist.push({
+                push({
                     template: "title",
                     title,
                     preview: title
@@ -304,7 +409,7 @@ async function openPlaylist(file) {
             }
             case "4": {
                 let [title, subtitle] = args
-                playlist.push({
+                push({
                     template: "subtitle",
                     title, subtitle,
                     preview: title + " - " + subtitle,
@@ -313,7 +418,7 @@ async function openPlaylist(file) {
             }
             case "5": {
                 let [source] = args
-                playlist.push({
+                push({
                     template: "image",
                     source
                 })
@@ -323,28 +428,9 @@ async function openPlaylist(file) {
         i++;
     }
 
-    let playlistElement = document.getElementById("playlist-items");
-    let playlistItemSample = document.getElementById("playlist-item-sample");
-    for (let [i, item] of Object.entries(playlist)) {
-        let div = playlistItemSample.cloneNode(true);
-
-        div.children[0].innerHTML = item.template;
-        div.children[1].innerHTML = item.preview;
-        if (item.slides) {
-            for (let [s, slide] of Object.entries(item.slides)) {
-                let p = document.createElement("p");
-                p.innerHTML = slide.replaceAll("\n", "");
-                p.id = `slide-preview-i${i}s${s}`;
-                div.appendChild(p);
-            }
-        }
-
-        div.dataset.index = i;
-        div.classList.remove("hidden")
-        div.id = "";
-        div.addEventListener("click", onPlaylistItemClick);
-        div.addEventListener("contextmenu", openPlaylistItemContextMenu);
-        playlistElement.appendChild(div);
+    for (let item of Object.values(playlist)) {
+        addPlaylistItemToDOM(item.id, item.idx);
+        editPlaylistItemInDOM(item);
     }
 
     document.getElementById("save-playlist-btn").disabled = false;
@@ -357,7 +443,8 @@ function pastePlaylist() {
 
 function savePlaylist() {
     let textFile = "";
-    for (let item of playlist) {
+    for (let element of playlistElement.children) {
+        let item = playlist[element.dataset.id];
         switch (item.template) {
             case "welcome":
                 textFile += `0,${item.year},${item.month},${item.day}\n`;
@@ -458,6 +545,8 @@ const KEY_MAP = {
     "Ce": editItem,
     "Ca": addItem,
     "j": jumpToSlide,
+    "CSArrowUp": () => movePlaylistItem(curPlaylistItem.id, -1),
+    "CSArrowDown": () => movePlaylistItem(curPlaylistItem.id, 1),
 }
 window.addEventListener("keydown", e => {
     let key = (
@@ -478,43 +567,24 @@ window.addEventListener("keydown", e => {
 // Message Receiving
 // ===
 function handleItemEditorClose(data) {
-    let {idx, item} = data;
+    let {item} = data;
+    let {id, idx} = item;
 
-    if (curPlaylistIdx == idx) {
-        curPlaylistItem = item;
-        curSlide = playlistItemToSlide(item, curSlideIdx);
-        refreshSlideShow();
-    }
-    
-    playlist[idx] = item;
-    
-    let playlistItems = document.getElementById("playlist-items");
-    let div = playlistItems.children[idx];
-    if (!div) {
-        // New item - clone the previous div
-        div = playlistItems.lastChild.cloneNode(true);
-        div.classList.remove("selected");
-        div.dataset.index++;
-        playlistItems.appendChild(div);
-    }
-    div.children[0].innerHTML = item.template;
-    div.children[1].innerHTML = item.preview;
-    if (item.slides) {
-        for (let e of Array.from(div.children)) {
-            if (e.tagName === "P") {
-                div.removeChild(e);
-            }
+    if (id === "new") {
+        id = nextItemId++;
+        playlist[id] = {...item, id, idx};
+        addPlaylistItemToDOM(id, idx);
+    } else {
+        if (curPlaylistItem.id == id) {
+            curPlaylistItem = item;
+            curSlide = playlistItemToSlide(item, curSlideIdx);
+            refreshSlideShow();
         }
-        for (let [s, slide] of Object.entries(item.slides)) {
-            p = document.createElement("p");
-            p.id = `slide-preview-i${idx}s${s}`;
-            p.innerHTML = slide.replaceAll("\n", "");
-            if (curPlaylistIdx == idx && curSlideIdx == s) {
-                p.classList.add("selected");
-            }
-            div.appendChild(p);
-        }
+        
+        playlist[id] = item;
     }
+
+    editPlaylistItemInDOM(playlist[id]);
 }
 
 function handlePastePlaylist(e) {
@@ -550,13 +620,18 @@ async function refreshTranslations(lang) {
             try {
                 document.getElementById(id).innerHTML = string;
             } catch {
-                console.log(`Error setting ${id}`);
+                console.error(`Error setting ${id}`);
             }
         }
     }
 }
 
-window.addEventListener("load", e => refreshTranslations());
+window.addEventListener("load", e => {
+    playlistElement = document.getElementById("playlist-items");
+    playlistItemSample = document.getElementById("playlist-item-sample");
+
+    refreshTranslations();
+});
 
 function wsConnect() {
     let { hostname, port } = window.location;

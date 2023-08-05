@@ -1,4 +1,3 @@
-let itemIdx;
 let editorMode = "quick";
 
 function dataTableToItem() {
@@ -45,7 +44,6 @@ window.addEventListener("message", e => {
     if (e.data.type != "init")
         return;
     
-    itemIdx = e.data.idx;
     let itemData = e.data.item;
 
     itemToDataTable(itemData);
@@ -207,7 +205,7 @@ function save() {
     }
 
     window.opener.postMessage(
-        {type: "item-editor-close", idx: itemIdx, item}, "*"
+        {type: "item-editor-close", item}, "*"
     )
 
     window.close();

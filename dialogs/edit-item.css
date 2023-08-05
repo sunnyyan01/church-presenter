@@ -50,6 +50,10 @@ table#item-data-table {
     width: 90%;
 }
 
+tr.internal-use {
+    display: none;
+}
+
 th,
 td {
     position: relative;
