@@ -96,8 +96,7 @@ function onTemplateChange() {
         "welcome": ["datetime"],
         "bible": ["title", "location", "slides"],
         "song": ["title", "name", "slides"],
-        "title": ["title"],
-        "subtitle": ["title", "subtitle"],
+        "title": ["title", "subtitle"],
         "image": ["source"],
     }[changeTo];
     for (let key of fieldsToEnable) {
@@ -171,10 +170,10 @@ function autoPreview() {
             preview = getCurValue("title") + " - " + getCurValue("name");
             break;
         case "title":
-            preview = getCurValue("title");
-            break;
-        case "subtitle":
-            preview = getCurValue("title") + " - " + getCurValue("subtitle");
+            let subtitle = getCurValue("subtitle");
+            preview = subtitle
+                ? getCurValue("title") + " - " + subtitle
+                : getCurValue("title");
             break;
     }
     if (preview) {

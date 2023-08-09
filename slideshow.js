@@ -1,4 +1,6 @@
 window.curTemplate = ""
+let ytPlayer;
+let ytPlayingInterval;
 
 function onChangeSlide({slide}) {
     if (window.curTemplate) {
@@ -12,7 +14,7 @@ function onChangeSlide({slide}) {
     for (let field in slide.fields || {}) {
         let text = slide.fields[field];
         if (slide.template === "bible" && field === "text") {
-            text = text.replaceAll(/([0-9]+)/g, "<sup>$1</sup>");
+            text = text.replaceAll(/^([0-9]+)/gm, "<sup>$1</sup>");
         }
         let element = document.getElementById(`${slide.template}-${field}-field`);
         if (element)
@@ -20,21 +22,29 @@ function onChangeSlide({slide}) {
     }
 
     for (let element of slide.elements || []) {
-        let htmlEl = selTemplate.getElementsByTagName(element.tag_name)[0];
+        let htmlEl = document.getElementById(`${slide.template}-${element.id}-element`);
         for (let name in element.attributes) {
             htmlEl.setAttribute(name, element.attributes[name]);
         }
+        for (let key in element.dataset) {
+            htmlEl.dataset[key] = element.dataset[key];
+        }
     }
 
-    // if (slide.template === "youtube") {
-    //     let videoId = document.getElementById("youtube-player").dataset.youtubeId
-    //     window.ytPlayer = new YT.Player("youtube-player", {
-    //         height: window.innerHeight.toString(),
-    //         width: window.innerWidth.toString(),
-    //         videoId,
-    //         playerVars: { controls: 0, origin: "null" },
-    //     });
-    // }
+    if (slide.template === "youtube") {
+        let videoId = document.getElementById("youtube-player-element").dataset.videoId;
+        if (ytPlayer) {
+            ytPlayer.cueVideoById(videoId);
+        } else {
+            ytPlayer = new YT.Player("youtube-player-element", {
+                height: window.innerHeight.toString(),
+                width: window.innerWidth.toString(),
+                videoId,
+                playerVars: { controls: 0 },
+                events: { 'onStateChange': onPlayerStateChange },
+            });
+        }
+    }
 
     selTemplate.classList.add("showing");
     window.curTemplate = slide.template;
@@ -59,13 +69,37 @@ function onScroll({ direction }) {
 function onFullscreen() {
     document.documentElement.requestFullscreen({navigationUI: "hide"});
 }
-
 function onHide() {
     window.blur();
 }
-
 function onShow() {
     window.focus();
+}
+
+function togglePlayback() {
+    if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        ytPlayer.pauseVideo();
+    } else {
+        ytPlayer.playVideo();
+    }
+}
+const timeConvert = sec => (
+    (sec / 60).toFixed(0) +
+    ":" +
+    (sec % 60).toFixed(0).padStart(2, "0")
+);
+function onPlayerStateChange({data}) {
+    if (data === YT.PlayerState.PLAYING) {
+        ytPlayingInterval = setInterval(() => {
+            let cur = timeConvert( ytPlayer.getCurrentTime() );
+            let len = timeConvert( ytPlayer.getDuration() );
+            window.opener.postMessage(
+                {type: "set-timer", text: `${cur} / ${len}`}, "*"
+            );
+        }, 1000)
+    } else if (ytPlayingInterval) {
+        clearInterval(ytPlayingInterval);
+    }
 }
 
 window.addEventListener("message", e => {
@@ -84,5 +118,9 @@ window.addEventListener("message", e => {
             return onHide()
         case "show":
             return onShow()
+        case "togglePlayback":
+            return togglePlayback()
+        case "stopPlayback":
+            return ytPlayer.stopVideo()
     }
 })

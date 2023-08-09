@@ -33,6 +33,11 @@ function playlistItemToSlide(item, slideIdx = 0) {
         }
         case "bible": {
             let {title, location, slides} = item
+            if (slideIdx === 0) {
+                return playlistItemToSlide({
+                    template: "title", title, subtitle: location}
+                )
+            }
             return {
                 template: "bible",
                 fields: { title, location, text: slides[slideIdx] },
@@ -40,23 +45,26 @@ function playlistItemToSlide(item, slideIdx = 0) {
         }
         case "song": {
             let {title, name, slides} = item
+            if (slideIdx === 0) {
+                return playlistItemToSlide({
+                    template: "title", title, subtitle: location}
+                )
+            }
             return {
                 template: "song",
                 fields: { title, name, lyrics: slides[slideIdx] },
             }
         }
         case "title": {
-            let {title} = item
+            let {title, subtitle} = item
+            if (subtitle)
+                return {
+                    template: "subtitle",
+                    fields: { title, subtitle },
+                }
             return {
                 template: "title",
                 fields: { title },
-            }
-        }
-        case "subtitle": {
-            let {title, subtitle} = item
-            return {
-                template: "subtitle",
-                fields: { title, subtitle },
             }
         }
         case "image": {
@@ -64,11 +72,18 @@ function playlistItemToSlide(item, slideIdx = 0) {
             return {
                 template: "image",
                 elements: [{
-                    tag_name: "img",
+                    id: "img",
                     attributes: {
                         src: source,
                     }
                 }]
+            }
+        }
+        case "youtube": {
+            let {videoId} = item;
+            return {
+                template: "youtube",
+                elements: [{id: "player", dataset: {videoId}}]
             }
         }
     }
@@ -195,7 +210,7 @@ function editPlaylistItemInDOM(item) {
         for (let [s, slide] of Object.entries(item.slides)) {
             p = document.createElement("p");
             p.id = `slide-preview-i${item.id}s${s}`;
-            p.innerHTML = slide.replaceAll("\n", "");
+            p.textContent = slide.replaceAll("\n", "");
             if (curPlaylistItem.id == item.id && curSlideIdx == s) {
                 p.classList.add("selected");
             }
@@ -364,7 +379,7 @@ async function openPlaylist(file) {
             }
             case "1": {
                 let [title, location] = args
-                let slides = []
+                let slides = ["<Title Slide>"]
                 let slide = ""
                 do {
                     slide += lines[++i] + "\n"
@@ -382,7 +397,7 @@ async function openPlaylist(file) {
             }
             case "2": {
                 let [title, name] = args
-                let slides = []
+                let slides = ["<Title Slide>"]
                 let slide = ""
                 do {
                     slide += lines[++i] + "\n"
@@ -399,30 +414,28 @@ async function openPlaylist(file) {
                 break;
             }
             case "3": {
-                let [title] = args
+                let [title, subtitle] = args
+                let preview = subtitle ? title + " - " + subtitle : title;
                 push({
                     template: "title",
-                    title,
-                    preview: title
+                    title, subtitle, preview,
                 })
                 break;
             }
             case "4": {
-                let [title, subtitle] = args
-                push({
-                    template: "subtitle",
-                    title, subtitle,
-                    preview: title + " - " + subtitle,
-                })
-                break;
-            }
-            case "5": {
                 let [source] = args
                 push({
                     template: "image",
                     source
                 })
                 break;
+            }
+            case "5": {
+                let [videoId] = args
+                push({
+                    template: "youtube",
+                    videoId, preview: videoId,
+                })
             }
         }
         i++;
@@ -503,31 +516,20 @@ function addDuplicateSlideshow() {
 }
 
 // ===
-// Timer Controls
+// Timer / Playback Controls
 // ===
 let timer, timerElement, timerStart;
-function toggleTimer() {
-    if (timer) {
-        clearInterval(timer);
-    } else {
-        if (!timerStart) {
-            timerStart = Date.now();
-        }
-        timerElement = document.getElementById("timer");
-        timer = setInterval(() => {
-            let elapsed = (Date.now() - timerStart) / 1000;
-            let minutes = (elapsed / 60).toFixed(0);
-            let seconds = (elapsed % 60).toFixed(0);
-            timerElement.innerText = `${minutes}m ${seconds}s`
-        }, 1000);
-    }
+function togglePlayback() {
+    slideshowWindow.postMessage({type: "togglePlayback"});
 }
 
-function resetTimer() {
-    timerStart = 0;
-    clearInterval(timer);
-    timer = null;
-    timerElement.innerText = ""
+function setTimer(text) {
+    timerElement.textContent = text;
+}
+
+function resetPlayback() {
+    slideshowWindow.postMessage({type: "stopPlayback"});
+    timerElement.textContent = ""
 }
 
 // ===
@@ -601,6 +603,9 @@ window.addEventListener("message", e => {
         case "paste-playlist":
             handlePastePlaylist(e.data);
             break;
+        case "set-timer":
+            setTimer(e.data.text);
+            break;
     }
 })
 
@@ -629,6 +634,8 @@ async function refreshTranslations(lang) {
 window.addEventListener("load", e => {
     playlistElement = document.getElementById("playlist-items");
     playlistItemSample = document.getElementById("playlist-item-sample");
+    
+    timerElement = document.getElementById("timer");
 
     refreshTranslations();
 });

@@ -131,14 +131,17 @@ h1,h2,h3,h4,h5,h6,p {
     text-align: center;
 }
 
-.youtube-template iframe {
+.youtube-template {
+    padding: 0px;
+}
+#youtube-player-element {
     position: absolute;
     width: 100vw;
     height: 100vh;
     z-index: 2;
 }
 
-.image-template img {
+#image-img-element {
     z-index: 2;
 }
 
