@@ -10,6 +10,8 @@ function dataTableToItem() {
 
             if (key === "slides") {
                 item[key] = valueElement.value.split(/N\s*\n/);
+            } else if (key === "numSlides") {
+                item[key] = valueElement.value || Infinity;
             } else {
                 item[key] = valueElement.value;
             }
@@ -98,6 +100,8 @@ function onTemplateChange() {
         "song": ["title", "name", "slides"],
         "title": ["title", "subtitle"],
         "image": ["source"],
+        "youtube": ["videoId"],
+        "pdf": ["url", "numSlides"],
     }[changeTo];
     for (let key of fieldsToEnable) {
         document.getElementById(`item-data-table-row--${key}`)
@@ -146,7 +150,7 @@ async function autoSlides(force = false) {
     loadingDiv.classList.remove("hidden");
     
     let location = getCurValue("location");
-    let resp = await fetch(`http://localhost:3000/bible-lookup?loc=${location}`);
+    let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
     let text = await resp.text();
     if (resp.ok) {
         setValue("slides", text);
@@ -204,7 +208,7 @@ function save() {
     }
 
     window.opener.postMessage(
-        {type: "item-editor-close", item}, "*"
+        {type: "edit-item", item}, "*"
     )
 
     window.close();

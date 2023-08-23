@@ -37,27 +37,29 @@
                     <option value="title">Title</option>
                     <option value="subtitle">Title + Subtitle</option>
                     <option value="image">Image</option>
+                    <option value="youtube">Youtube</option>
+                    <option value="pdf">PDF</option>
                 </select>
             </td>
         </tr>
         <tr id="item-data-table-row--year">
             <th>Year</th>
             <td>
-                <input type="number" />
+                <input type="number" min="2000" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
         <tr id="item-data-table-row--month">
             <th>Month</th>
             <td>
-                <input type="number" />
+                <input type="number" min="1" max="12" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
         <tr id="item-data-table-row--day">
             <th>Day</th>
             <td>
-                <input type="number" />
+                <input type="number" min="1" max="31" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
@@ -82,6 +84,18 @@
         </tr>
         <tr id="item-data-table-row--source">
             <th>Source</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--videoId">
+            <th>Video ID</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--url">
+            <th>URL</th>
+            <td><input type="text" /></td>
+        </tr>
+        <tr id="item-data-table-row--numSlides">
+            <th>Page Count</th>
             <td><input type="text" /></td>
         </tr>
         <tr id="item-data-table-row--slides">

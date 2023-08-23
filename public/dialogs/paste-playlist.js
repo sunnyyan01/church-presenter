@@ -22,10 +22,10 @@ async function autoBible() {
         let match = /1,.+,(.+)/.exec(line);
         if (match) {
             let location = match[1];
-            let resp = await fetch(`http://localhost:3000/bible-lookup?loc=${location}`);
+            let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
             if (resp.ok) {
                 let text = await resp.text();
-                processed.push(text);
+                processed.push(text+"E");
             }
         }
     }

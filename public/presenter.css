@@ -61,7 +61,6 @@ body {
 }
 .playlist-item.selected {
     border: 2px solid blue;
-    cursor: initial;
 }
 .playlist-item {
     padding: 10px;
@@ -73,11 +72,15 @@ body {
 .playlist-item > * {
     margin: 0px;
 }
-.playlist-item > p {
+p.slide-preview {
     white-space: nowrap;
     overflow: hidden;
+    border: 1px solid rgba(0,0,0,0);
 }
-.playlist-item > p.selected {
+p.slide-preview:hover {
+    border: 1px solid cyan;
+}
+p.slide-preview.selected {
     background-color: cyan;
 }
 

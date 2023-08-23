@@ -26,38 +26,34 @@ function normaliseBook(str) {
     return BOOKS[ 2 ][ getBookId(str) ]
 }
 
-export function bibleLookupEndpoint(req, url, res) {
+export function bibleLookup(loc, callback) {
     // let [book, loc] = location.match(/(.+?)([0-9:-]+)/)
     // book = normaliseBook(book)
-    let loc = url.searchParams.get('loc');
 
-    let bible_req = get(
+    get(
         `https://www.biblegateway.com/passage/?search=${loc}&version=CUVMPS&interface=print`,
         bible_res => {
             let data = '';
           
-            // A chunk of data has been received.
+            // A chunk of data has been received
             bible_res.on('data', chunk => {
                 data += chunk;
             });
           
-            // The whole response has been received. Print out the result.
+            // The whole response has been received
             bible_res.on('end', () => {
                 let dom = new JSDOM(data);
                 let div = dom.window.document.querySelector("div.passage-content");
                 if (!div) {
-                    serverTextResp(res, "Couldn't find requested passage", 500);
-                    return;
+                    throw Error("Couldn't find requested passage");
                 }
                 let text = "";
                 for (let span of div.getElementsByTagName("span")) {
                     if (span.classList.contains("text"))
                         text += span.textContent + "\n";
                 }
-                serverTextResp(res, text);
+                callback(text);
             });
         }
-    ).on("error", err => {
-        console.log("Error: " + err.message);
-    });
+    );
 }

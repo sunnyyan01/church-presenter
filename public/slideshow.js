@@ -1,6 +1,65 @@
 window.curTemplate = ""
 let ytPlayer;
 let ytPlayingInterval;
+let pdfCur = {url: "", pageNum: -1, renderTask: null, renderComplete: true};
+let pdfObj;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+
+function youtubeSlideHandler() {
+    let videoId = document.getElementById("youtube-player-element").dataset.videoId;
+    if (ytPlayer) {
+        if (!ytPlayer.getVideoUrl().includes(videoId))
+            ytPlayer.cueVideoById(videoId);
+    } else {
+        ytPlayer = new YT.Player("youtube-player-element", {
+            height: window.innerHeight.toString(),
+            width: window.innerWidth.toString(),
+            videoId,
+            playerVars: { controls: 0 },
+            events: { 'onStateChange': onPlayerStateChange },
+        });
+    }
+}
+async function pdfSlideHandler() {
+    let canvas = document.getElementById("pdf-canvas-element");
+    let ctx = canvas.getContext("2d");
+    let {url, pageNum, itemId} = canvas.dataset;
+    pageNum = parseInt(pageNum);
+
+    if (pdfCur.url !== url) {
+        pdfObj = await pdfjsLib.getDocument(url).promise;
+        pdfCur.url = url;
+        let numPages = pdfObj.numPages;
+        window.opener.postMessage({
+            type: "edit-item",
+            item: {id: itemId, numSlides: numPages}
+        })
+    }
+
+    if (pdfCur.pageNum !== pageNum) {
+        let page = await pdfObj.getPage(pageNum);
+        let viewport = page.getViewport({scale: 2});
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        if (!pdfCur.renderComplete) {
+            pdfCur.renderTask.cancel();
+            pdfCur.pageNum = -1;
+            try {
+                await pdfCur.renderTask.promise;
+            } catch {}
+        }
+
+        pdfCur.renderComplete = false;
+
+        pdfCur.renderTask = page.render({canvasContext: ctx, viewport});
+        pdfCur.renderTask.promise.then(() => {
+            pdfCur.renderComplete = true;
+        })
+    }
+}
 
 function onChangeSlide({slide}) {
     if (window.curTemplate) {
@@ -31,20 +90,10 @@ function onChangeSlide({slide}) {
         }
     }
 
-    if (slide.template === "youtube") {
-        let videoId = document.getElementById("youtube-player-element").dataset.videoId;
-        if (ytPlayer) {
-            ytPlayer.cueVideoById(videoId);
-        } else {
-            ytPlayer = new YT.Player("youtube-player-element", {
-                height: window.innerHeight.toString(),
-                width: window.innerWidth.toString(),
-                videoId,
-                playerVars: { controls: 0 },
-                events: { 'onStateChange': onPlayerStateChange },
-            });
-        }
-    }
+    if (slide.template === "youtube")
+        youtubeSlideHandler();
+    else if (slide.template === "pdf")
+        pdfSlideHandler();
 
     selTemplate.classList.add("showing");
     window.curTemplate = slide.template;

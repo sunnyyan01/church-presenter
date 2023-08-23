@@ -1,38 +1,19 @@
-import { createServer } from "http";
-import { readFile } from "fs";
+import express from 'express';
 import { WebSocketServer } from 'ws';
-import { bibleLookupEndpoint } from "./server/bible.js";
-import { extToMimeType, serverResp, serverTextResp } from "./server/common.js";
+import { bibleLookup } from "./server/bible.js";
 
 const hostname = process.env.HOST || '127.0.0.1';
 const port = 3000;
-const wsPort = 3001;
+const app = express();
 
-const endpointMap = {
-    "/bible-lookup": bibleLookupEndpoint,
-}
+app.use(express.static('public'));
 
-const server = createServer((req, res) => {
-    let url = new URL(req.url, `http://${req.headers.host}`);
-    if (url.pathname.includes(".")) {
-        let parts = url.pathname.split(".");
-        let ext = parts.pop();
-        readFile(`./${url.pathname}`, 'utf-8', (err, data) => {
-            if (err)
-                serverTextResp(res, `${err.name}: ${err.message}`, 500);
-            else
-                serverResp(res, data, {'Content-Type': extToMimeType(ext)});
-        });
-    } else {
-        let endpointFn = endpointMap[url.pathname];
-        if (endpointFn)
-            endpointFn(req, url, res);
-        else
-            serverTextResp(res, `Invalid API endpoint: ${url.pathname}`, 404);
-    }
-});
+app.get('/api/bible-lookup', (req, res) => {
+    let {loc} = req.query;
+    bibleLookup(loc, text => res.send(text));
+})
 
-server.listen(port, hostname, () => {
+const server = app.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
 });
 
