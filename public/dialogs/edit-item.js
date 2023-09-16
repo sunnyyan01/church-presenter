@@ -10,6 +10,7 @@ function dataTableToItem() {
 
             if (key === "slides") {
                 item[key] = valueElement.value.split(/N\s*\n/);
+                item[key].unshift("<Title Slide>");
             } else if (key === "numSlides") {
                 item[key] = valueElement.value || Infinity;
             } else {
@@ -34,11 +35,12 @@ function itemToDataTable(itemData) {
 
         let valueElement = row.children[1].children[0];
         if (key === "slides") {
-            valueElement.value = val.join("N\n");
+            valueElement.value = val.splice(1).join("N\n");
         } else {
             valueElement.value = val;
         }
     }
+    onTemplateChange();
     table.classList.remove("hidden");
 }
 
@@ -100,7 +102,7 @@ function onTemplateChange() {
         "song": ["title", "name", "slides"],
         "title": ["title", "subtitle"],
         "image": ["source"],
-        "youtube": ["videoId"],
+        "youtube": ["videoId","start","end"],
         "pdf": ["url", "numSlides"],
     }[changeTo];
     for (let key of fieldsToEnable) {
@@ -128,21 +130,43 @@ function autoBibleFormat() {
         return;
 
     let location = getCurValue("location");
+    let processed = "";
+
     REPLACE_MAP = {
         "：": ":",
-        "——": "-",
+        "—": "-",
     }
-    for (let i = 0; i < location.length; i++) {
-        let replace = REPLACE_MAP[location[i]];
-        if (replace) {
-            location[i] = replace;
-        }
+    for (let c of location) {
+        processed += REPLACE_MAP[c] || c;
+    }
+
+    setValue("location", processed);
+}
+
+function autoTimeConvert() {
+    let start = getCurValue("start").split(":");
+    if (start.length === 3) {
+        let [hour, min, sec] = start;
+        setValue("start", hour * 3600 + min * 60 + parseFloat(sec));
+    } else if (start.length === 2) {
+        let [min, sec] = start;
+        setValue("start", min * 60 + parseFloat(sec));
+    }
+
+    let end = getCurValue("end").split(":");
+    if (end.length === 3) {
+        let [hour, min, sec] = end;
+        setValue("end", hour * 3600 + min * 60 + parseFloat(sec));
+    } else if (start.length === 2) {
+        let [min, sec] = end;
+        setValue("end", min * 60 + parseFloat(sec));
     }
 }
 
 async function autoSlides(force = false) {
     if (getCurValue("template") != "bible")
         return;
+    // If slides are already filled, don't overwrite with all auto
     if (!force && getCurValue("slides"))
         return;
 
@@ -179,6 +203,15 @@ function autoPreview() {
                 ? getCurValue("title") + " - " + subtitle
                 : getCurValue("title");
             break;
+        case "image":
+            preview = getCurValue("source");
+            break;
+        case "youtube":
+            preview = getCurValue("videoId");
+            break;
+        case "pdf":
+            preview = getCurValue("url");
+            break;
     }
     if (preview) {
         setValue("preview", preview.replaceAll("<br>", "🆕"));
@@ -191,6 +224,7 @@ function allAuto() {
 
     autoDate();
     autoPreview();
+    autoTimeConvert();
     autoSlides();
     return true;
 }

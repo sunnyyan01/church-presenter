@@ -8,10 +8,7 @@ const app = express();
 
 app.use(express.static('public'));
 
-app.get('/api/bible-lookup', (req, res) => {
-    let {loc} = req.query;
-    bibleLookup(loc, text => res.send(text));
-})
+app.get('/api/bible-lookup', bibleLookup);
 
 const server = app.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);

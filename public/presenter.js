@@ -80,10 +80,10 @@ function playlistItemToSlide(item, slideIdx = 0) {
             }
         }
         case "youtube": {
-            let {videoId} = item;
+            let {videoId, start, end} = item;
             return {
                 template: "youtube",
-                elements: [{id: "player", dataset: {videoId}}]
+                elements: [{id: "player", dataset: {videoId, start, end}}]
             }
         }
         case "pdf": {
@@ -381,7 +381,7 @@ function editItem(id = null) {
         );
     }, 1000);
 }
-function addItem(idx = playlist.length) {
+function addItem(idx = Object.entries(playlist).length) {
     let dialog = window.open("dialogs/edit-item.html", "edit-item", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
@@ -484,10 +484,10 @@ async function openPlaylist(file) {
                 break;
             }
             case "5": {
-                let [videoId] = args
+                let [videoId, start, end] = args
                 push({
                     template: "youtube",
-                    videoId, preview: videoId,
+                    videoId, start, end, preview: videoId,
                 })
                 break;
             }
@@ -550,7 +550,8 @@ function savePlaylist() {
                 textFile += `4,${item.source}\n`;
                 break;
             case "youtube":
-                textFile += `5,${item.videoId}\n`;
+                let list = [5, item.videoId, item.start, item.end].filter(x => x);
+                textFile += list.join(",") + "\n";
                 break;
             case "pdf":
                 textFile += `6,${item.url}\n`;

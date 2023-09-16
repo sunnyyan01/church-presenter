@@ -1,4 +1,3 @@
-import { serverTextResp } from "./common.js";
 import { get } from 'node:https';
 import { JSDOM } from "jsdom";
 
@@ -26,9 +25,11 @@ function normaliseBook(str) {
     return BOOKS[ 2 ][ getBookId(str) ]
 }
 
-export function bibleLookup(loc, callback) {
+export function bibleLookup(req, res) {
     // let [book, loc] = location.match(/(.+?)([0-9:-]+)/)
     // book = normaliseBook(book)
+
+    let {loc} = req.query;
 
     get(
         `https://www.biblegateway.com/passage/?search=${loc}&version=CUVMPS&interface=print`,
@@ -45,14 +46,15 @@ export function bibleLookup(loc, callback) {
                 let dom = new JSDOM(data);
                 let div = dom.window.document.querySelector("div.passage-content");
                 if (!div) {
-                    throw Error("Couldn't find requested passage");
+                    res.status(404).send("Couldn't find requested passage");
+                    return;
                 }
                 let text = "";
                 for (let span of div.getElementsByTagName("span")) {
                     if (span.classList.contains("text"))
                         text += span.textContent + "\n";
                 }
-                callback(text);
+                res.send(text);
             });
         }
     );

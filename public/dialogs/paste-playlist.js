@@ -16,20 +16,35 @@ function fixSymbols() {
 
 async function autoBible() {
     let editor = document.getElementById("editor");
-    let processed = [];
-    for (let line of editor.value.split("\n")) {
-        processed.push(line);
+    let {selectionStart, selectionEnd} = editor;
+
+    if (selectionStart === selectionEnd) {
+        let processed = [];
+        for (let line of editor.value.split("\n")) {
+            processed.push(line);
+            let match = /1,.+,(.+)/.exec(line);
+            if (match) {
+                let location = match[1];
+                let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
+                if (resp.ok) {
+                    let text = await resp.text();
+                    processed.push(text.trim()+"E");
+                }
+            }
+        }
+        editor.value = processed.join("\n");
+    } else {
+        let line = editor.value.substring(selectionStart, selectionEnd);
         let match = /1,.+,(.+)/.exec(line);
         if (match) {
             let location = match[1];
             let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
             if (resp.ok) {
                 let text = await resp.text();
-                processed.push(text+"E");
+                editor.setRangeText(line + "\n" + text.trim() + "E\n");
             }
         }
     }
-    editor.value = processed.join("\n");
 }
 
 function submit() {

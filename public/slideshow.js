@@ -7,17 +7,16 @@ let pdfObj;
 pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
 
 function youtubeSlideHandler() {
-    let videoId = document.getElementById("youtube-player-element").dataset.videoId;
     if (ytPlayer) {
-        if (!ytPlayer.getVideoUrl().includes(videoId))
-            ytPlayer.cueVideoById(videoId);
+        onPlayerReady();
     } else {
         ytPlayer = new YT.Player("youtube-player-element", {
             height: window.innerHeight.toString(),
             width: window.innerWidth.toString(),
-            videoId,
-            playerVars: { controls: 0 },
-            events: { 'onStateChange': onPlayerStateChange },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            },
         });
     }
 }
@@ -131,6 +130,14 @@ function togglePlayback() {
     } else {
         ytPlayer.playVideo();
     }
+}
+function onPlayerReady() {
+    let {videoId, start, end} = document.getElementById("youtube-player-element").dataset;
+    let startSeconds = start ? parseFloat(start) : undefined;
+    let endSeconds = end ? parseFloat(end) : undefined;
+
+    if (!ytPlayer.getVideoUrl().includes(videoId))
+        ytPlayer.cueVideoById({videoId, startSeconds, endSeconds});
 }
 const timeConvert = sec => (
     (sec / 60).toFixed(0) +
