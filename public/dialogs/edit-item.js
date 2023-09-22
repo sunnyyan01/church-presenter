@@ -97,7 +97,7 @@ function switchMode(button) {
 function onTemplateChange() {
     let changeTo = document.getElementById("template-selector").value;
     let fieldsToEnable = {
-        "welcome": ["datetime"],
+        "welcome": ["year", "month", "day"],
         "bible": ["title", "location", "slides"],
         "song": ["title", "name", "slides"],
         "title": ["title", "subtitle"],
@@ -256,9 +256,9 @@ const KEY_MAP = {
 }
 window.addEventListener("keydown", e => {
     let key = (
-        (e.shiftKey ? "S" : "") +
         (e.ctrlKey ? "C" : "") +
         (e.altKey ? "A" : "") +
+        (e.shiftKey ? "S" : "") +
         e.key
     )
     let handler = KEY_MAP[key];

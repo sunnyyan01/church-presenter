@@ -1,6 +1,12 @@
 import express from 'express';
+import { exec } from 'child_process';
 import { WebSocketServer } from 'ws';
 import { bibleLookup } from "./server/bible.js";
+
+console.log(`===
+Church Presenter by Sunny Yan
+===
+Starting up ... please wait`)
 
 const hostname = process.env.HOST || '127.0.0.1';
 const port = 3000;
@@ -11,7 +17,11 @@ app.use(express.static('public'));
 app.get('/api/bible-lookup', bibleLookup);
 
 const server = app.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+    console.log("Ready!")
+    console.log(`Opening http://${hostname}:${port}/presenter.html`);
+    exec(`start http://${hostname}:${port}/presenter.html`,
+        err => { if (err) throw err }
+    );
 });
 
 const wss = new WebSocketServer({ server, clientTracking: true });

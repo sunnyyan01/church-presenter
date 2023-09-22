@@ -623,9 +623,9 @@ const KEY_MAP = {
 }
 window.addEventListener("keydown", e => {
     let key = (
-        (e.shiftKey ? "S" : "") +
         (e.ctrlKey ? "C" : "") +
         (e.altKey ? "A" : "") +
+        (e.shiftKey ? "S" : "") +
         e.key
     )
     let handler = KEY_MAP[key];

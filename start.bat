@@ -1,0 +1,1 @@
+powershell.exe -ExecutionPolicy unrestricted -command "& '.\start.ps1'"
