@@ -13,22 +13,18 @@
         <button onclick="wsConnect()">Connect to server</button>
         <p id="server-connect-status"></p>
     </div>
-    <div class="section" style="width: calc(50%-10px);">
+    <div class="section" style="width: 100%">
+        <button onclick="sendKey('CArrowUp')">
+            Prev Slide ↑
+        </button>
         <button onclick="sendKey('ArrowUp')">
-            Prev ↑
+            Prev Subslide ↑
         </button>
-        <h5>Item</h5>
         <button onclick="sendKey('ArrowDown')">
-            Next ↓
+            Next Subslide ↓
         </button>
-    </div>
-    <div class="section" style="width: calc(50%-10px);">
-        <button onclick="sendKey('PageUp')">
-            Prev ↑
-        </button>
-        <h5>Slide</h5>
-        <button onclick="sendKey('PageDown')">
-            Next ↓
+        <button onclick="sendKey('CArrowDown')">
+            Next Slide ↓
         </button>
     </div>
     <div class="section" style="width: 100%">

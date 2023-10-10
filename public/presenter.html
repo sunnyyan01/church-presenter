@@ -13,11 +13,11 @@
 
 <div class="section playlist-section">
     <h1 id="playlist-header"></h2>
-    <div id="playlist-item-sample" class="playlist-item hidden">
+    <div id="slide-sample" class="slide hidden">
         <h4></h4>
         <h2></h2>
     </div>
-    <div id="playlist-item-context-menu" class="context-menu hidden">
+    <div id="slide-context-menu" class="context-menu hidden">
         <button data-action="edit">
             Edit
         </button>
@@ -37,7 +37,7 @@
             Delete
         </button>
     </div>
-    <div id="playlist-items" class="playlist-items">
+    <div id="slides" class="slides">
     </div>
 </div>
 
@@ -71,22 +71,22 @@
         <th><h4 id="control-categories--slide"></h4></th>
         <td>
             <div>
-                <button onclick="prevItem()">
-                    <span id="prev-item-btn-label"></span> (←,↑)
+                <button onclick="prevSlide()">
+                    <span id="prev-slide-btn-label"></span> (Ctrl + ↑)
                 </button>
-                <button onclick="nextItem()">
-                    <span id="next-item-btn-label"></span> (→,↓)
+                <button onclick="nextSlide()">
+                    <span id="next-slide-btn-label"></span> (Ctrl + ↓)
                 </button>
             </div>
             <div>
-                <button onclick="prevSlide()">
-                    <span id="prev-slide-btn-label"></span> (PgUp)
+                <button onclick="prevSubslide()">
+                    <span id="prev-subslide-btn-label"></span> (←,↑,PgUp)
                 </button>
-                <button onclick="nextSlide()">
-                    <span id="next-slide-btn-label"></span> (PgDn)
+                <button onclick="nextSubslide()">
+                    <span id="next-subslide-btn-label"></span> (→,↓,PgDn)
                 </button>
-                <button onclick="jumpToSlide()">
-                    <span id="jump-to-slide-btn-label"></span> (J)
+                <button onclick="jumpToSubslide()">
+                    <span id="jump-to-subslide-btn-label"></span> (J)
                 </button>
             </div>
             <div>
@@ -98,11 +98,11 @@
                 </button>
             </div>
             <div>
-                <button onclick="editItem()">
-                    <span id="edit-item-btn-label"></span> (Ctrl + E)
+                <button onclick="editSlide()">
+                    <span id="edit-slide-btn-label"></span> (Ctrl + E)
                 </button>
-                <button onclick="addItem()">
-                    <span id="add-item-btn-label"></span> (Ctrl + A)
+                <button onclick="addSlide()">
+                    <span id="add-slide-btn-label"></span> (Ctrl + A)
                 </button>
             </div>
         </td>
@@ -112,6 +112,7 @@
         <td>
             <button onclick="wsConnect()" id="server-connect-btn"></button>
             <p id="server-connect-status"></p>
+            <button onclick="remoteQrOpen()" id="remote-qr-btn"></button>
         </td>
     </tr>
 </table>
@@ -146,7 +147,7 @@
     </tr>
 </table>
 
-<p class="version-info">Church Presenter v0.5.2 (23 Sep 2023) © Sunny Yan 2023</p>
+<p class="version-info">Church Presenter v0.6.0 (11 Oct 2023) © Sunny Yan 2023</p>
 
 </body>
 </html>

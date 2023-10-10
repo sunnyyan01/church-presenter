@@ -2,10 +2,10 @@
 <html>
 
 <head>
-    <title>Church Presenter | Item Editor</title>
-    <script src="edit-item.js" charset="UTF-8"></script>
+    <title>Church Presenter | Slide Editor</title>
+    <script src="edit-slide.js" charset="UTF-8"></script>
     <link href="../common.css" rel="stylesheet" />
-    <link href="edit-item.css" rel="stylesheet" />
+    <link href="edit-slide.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -18,16 +18,16 @@
         </button>
     </div>
 
-    <table id="item-data-table">
-        <tr id="item-data-table-row--id" class="internal-use">
+    <table id="slide-data-table">
+        <tr id="slide-data-table-row--id" class="internal-use">
             <th>ID</th>
             <td><input disabled type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--idx" class="internal-use">
+        <tr id="slide-data-table-row--idx" class="internal-use">
             <th>Index</th>
             <td><input disabled type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--template">
+        <tr id="slide-data-table-row--template">
             <th>Template</th>
             <td>
                 <select id="template-selector" onclick="onTemplateChange()">
@@ -42,88 +42,88 @@
                 </select>
             </td>
         </tr>
-        <tr id="item-data-table-row--year">
+        <tr id="slide-data-table-row--year">
             <th>Year</th>
             <td>
                 <input type="number" min="2000" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
-        <tr id="item-data-table-row--month">
+        <tr id="slide-data-table-row--month">
             <th>Month</th>
             <td>
                 <input type="number" min="1" max="12" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
-        <tr id="item-data-table-row--day">
+        <tr id="slide-data-table-row--day">
             <th>Day</th>
             <td>
                 <input type="number" min="1" max="31" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
-        <tr id="item-data-table-row--title">
+        <tr id="slide-data-table-row--title">
             <th>Title</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--location">
+        <tr id="slide-data-table-row--location">
             <th>Location</th>
             <td>
                 <input type="text" pattern="^.+ ?\d+(:\d+(-\d+))?$" />
                 <button class="small" onclick="autoBibleFormat()">Auto</button>
             </td>
         </tr>
-        <tr id="item-data-table-row--name">
+        <tr id="slide-data-table-row--name">
             <th>Name</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--subtitle">
+        <tr id="slide-data-table-row--subtitle">
             <th>Subtitle</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--source">
+        <tr id="slide-data-table-row--source">
             <th>Source</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--videoId">
+        <tr id="slide-data-table-row--videoId">
             <th>Video ID</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--start">
+        <tr id="slide-data-table-row--start">
             <th>Start</th>
             <td>
                 <input type="text" />
                 <button class="small" onclick="autoTimeConvert()">Auto</button>
             </td>
         </tr>
-        <tr id="item-data-table-row--end">
+        <tr id="slide-data-table-row--end">
             <th>End</th>
             <td>
                 <input type="text" />
                 <button class="small" onclick="autoTimeConvert()">Auto</button>
             </td>
         </tr>
-        <tr id="item-data-table-row--url">
+        <tr id="slide-data-table-row--url">
             <th>URL</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--numSlides">
+        <tr id="slide-data-table-row--numSubslides">
             <th>Page Count</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="item-data-table-row--slides">
-            <th>Slides</th>
+        <tr id="slide-data-table-row--subslides">
+            <th>Subslides</th>
             <td>
                 <textarea cols="80" rows="15"></textarea>
                 <button class="small" onclick="autoSlides(true)">Auto</button>
-                <div id="autoSlides-loading" class="loading-backdrop hidden">
+                <div id="autoSubslides-loading" class="loading-backdrop hidden">
                     <div class="loading-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
                     <p>Please wait...</p>
                 </div>
             </td>
         </tr>
-        <tr id="item-data-table-row--preview">
+        <tr id="slide-data-table-row--preview">
             <th>Preview</th>
             <td>
                 <input type="text" />

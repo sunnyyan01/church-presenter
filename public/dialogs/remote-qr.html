@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<head>
+    <link href="../common.css" rel="stylesheet" />
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <p>Scan this QR code</p>
+    <img id="qr" />
+    <p>or open this link <a id="link"></a></p>
+    <script>
+        let qr = document.getElementById("qr");
+        let link = document.getElementById("link");
+        fetch("/api/remote-qr")
+            .then(res => res.text())
+            .then(res => {
+                let uri = encodeURIComponent(res);
+                qr.src = `https://api.qrserver.com/v1/create-qr-code/?data=${uri}&amp;size=300x300`;
+                link.textContent = res;
+                link.href = res;
+            })
+    </script>
+</body>

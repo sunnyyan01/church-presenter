@@ -2,24 +2,25 @@ import express from 'express';
 import { exec } from 'child_process';
 import { WebSocketServer } from 'ws';
 import { bibleLookup } from "./server/bible.js";
+import { remoteQr } from "./server/remote.js"
 
 console.log(`===
 Church Presenter by Sunny Yan
 ===
 Starting up ... please wait`)
 
-const hostname = process.env.HOST || '127.0.0.1';
-const port = 3000;
 const app = express();
+app.port = 3000;
 
 app.use(express.static('public'));
 
 app.get('/api/bible-lookup', bibleLookup);
+app.get('/api/remote-qr', remoteQr);
 
-const server = app.listen(port, hostname, () => {
+const server = app.listen(app.port, () => {
     console.log("Ready!")
-    console.log(`Opening http://${hostname}:${port}/presenter.html`);
-    exec(`start http://${hostname}:${port}/presenter.html`,
+    console.log(`Opening http://localhost:${app.port}/presenter.html`);
+    exec(`start http://localhost:${app.port}/presenter.html`,
         err => { if (err) throw err }
     );
 });
@@ -27,7 +28,6 @@ const server = app.listen(port, hostname, () => {
 const wss = new WebSocketServer({ server, clientTracking: true });
 wss.shouldHandle = req => {
     let url = new URL(req.url, `ws://${req.headers.host}`);
-    console.log(url.pathname);
     return url.pathname.match(/\/ws\/(presenter|remote|slideshow)/);
 }
 

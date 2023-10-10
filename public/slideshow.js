@@ -4,7 +4,7 @@ let ytPlayingInterval;
 let pdfCur = {url: "", pageNum: -1, renderTask: null, renderComplete: true};
 let pdfObj;
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.js';
 
 function youtubeSlideHandler() {
     if (ytPlayer) {
@@ -23,7 +23,7 @@ function youtubeSlideHandler() {
 async function pdfSlideHandler() {
     let canvas = document.getElementById("pdf-canvas-element");
     let ctx = canvas.getContext("2d");
-    let {url, pageNum, itemId} = canvas.dataset;
+    let {url, pageNum, slideId} = canvas.dataset;
     pageNum = parseInt(pageNum);
 
     if (pdfCur.url !== url) {
@@ -31,8 +31,8 @@ async function pdfSlideHandler() {
         pdfCur.url = url;
         let numPages = pdfObj.numPages;
         window.opener.postMessage({
-            type: "edit-item",
-            item: {id: itemId, numSlides: numPages}
+            type: "edit-slide",
+            slide: {id: slideId, numSubslides: numPages}
         })
     }
 
@@ -140,7 +140,7 @@ function onPlayerReady() {
         ytPlayer.cueVideoById({videoId, startSeconds, endSeconds});
 }
 const timeConvert = sec => (
-    (sec / 60).toFixed(0) +
+    Math.trunc(sec / 60) +
     ":" +
     (sec % 60).toFixed(0).padStart(2, "0")
 );

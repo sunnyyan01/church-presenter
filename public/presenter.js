@@ -1,18 +1,18 @@
 let curSlide = {
     template: "blank",
 };
-let curPlaylistItem = {
+let curSlideObj = {
     template: "blank",
     id: -1,
     idx: -1,
 };
-let curSlideIdx = 0;
-let selectedItem = null;
+let curSubslideIdx = 0;
+let selectedSlide = null;
 let playlist = {};
 let ws;
-let nextItemId = 0;
+let nextSlideId = 0;
 
-let playlistElement, playlistItemSample;
+let playlistElement, slideSample;
 
 let slideshowWindow;
 function refreshSlideShow() {
@@ -22,41 +22,41 @@ function refreshSlideShow() {
         );
 }
 
-function playlistItemToSlide(item, slideIdx = 0) {
-    switch (item.template) {
+function slideObjToSlide(slide, subslideIdx = 0) {
+    switch (slide.template) {
         case "welcome": {
-            let {year, month, day} = item
+            let {year, month, day} = slide
             return {
                 template: "welcome",
                 fields: { year, month, day },
             }
         }
         case "bible": {
-            let {title, location, slides} = item
-            if (slideIdx === 0) {
-                return playlistItemToSlide({
+            let {title, location, subslides} = slide
+            if (subslideIdx === 0) {
+                return slideObjToSlide({
                     template: "title", title, subtitle: location}
                 )
             }
             return {
                 template: "bible",
-                fields: { title, location, text: slides[slideIdx] },
+                fields: { title, location, text: subslides[subslideIdx] },
             }
         }
         case "song": {
-            let {title, name, slides} = item
-            if (slideIdx === 0) {
-                return playlistItemToSlide({
-                    template: "title", title, subtitle: location}
+            let {title, name, subslides} = slide
+            if (subslideIdx === 0) {
+                return slideObjToSlide({
+                    template: "title", title, subtitle: name}
                 )
             }
             return {
                 template: "song",
-                fields: { title, name, lyrics: slides[slideIdx] },
+                fields: { title, name, lyrics: subslides[subslideIdx] },
             }
         }
         case "title": {
-            let {title, subtitle} = item
+            let {title, subtitle} = slide
             if (subtitle)
                 return {
                     template: "subtitle",
@@ -68,7 +68,7 @@ function playlistItemToSlide(item, slideIdx = 0) {
             }
         }
         case "image": {
-            let {source} = item
+            let {source} = slide
             return {
                 template: "image",
                 elements: [{
@@ -80,130 +80,130 @@ function playlistItemToSlide(item, slideIdx = 0) {
             }
         }
         case "youtube": {
-            let {videoId, start, end} = item;
+            let {videoId, start, end} = slide;
             return {
                 template: "youtube",
                 elements: [{id: "player", dataset: {videoId, start, end}}]
             }
         }
         case "pdf": {
-            let {url} = item;
+            let {url} = slide;
             return {
                 template: "pdf",
                 elements: [{id: "canvas", dataset: {
                     url,
-                    pageNum: slideIdx + 1,
-                    itemId: item.id,
+                    pageNum: subslideIdx + 1,
+                    slideId: slide.id,
                 }}]
             }
         }
     }
 }
 
-function openPlaylistItemContextMenu(e) {
+function openSlideContextMenu(e) {
     e.preventDefault();
     e.stopPropagation();
     let {id, idx} = e.currentTarget.dataset;
     idx = parseInt(idx);
 
-    let contextMenu = document.getElementById("playlist-item-context-menu");
+    let contextMenu = document.getElementById("slide-context-menu");
 
     for (let button of contextMenu.children) {
         switch (button.dataset.action) {
             case "edit":
                 button.onclick = () => {
-                    editItem(id);
-                    closePlaylistItemContextMenu();
+                    editSlide(id);
+                    closeSlideContextMenu();
                 }
                 break;
             case "move-up":
                 button.onclick = () => {
-                    movePlaylistItem(id, -1);
-                    closePlaylistItemContextMenu();
+                    moveSlide(id, -1);
+                    closeSlideContextMenu();
                 }
                 break;
             case "move-down":
                 button.onclick = () => {
-                    movePlaylistItem(id, 1);
-                    closePlaylistItemContextMenu();
+                    moveSlide(id, 1);
+                    closeSlideContextMenu();
                 }
                 break;
             case "insert-above":
                 button.onclick = () => {
-                    addItem(idx);
-                    closePlaylistItemContextMenu();
+                    addSlide(idx);
+                    closeSlideContextMenu();
                 }
                 break;
             case "insert-below":
                 button.onclick = () => {
-                    addItem(idx + 1);
-                    closePlaylistItemContextMenu();
+                    addSlide(idx + 1);
+                    closeSlideContextMenu();
                 }
                 break;
             case "delete":
                 button.click = () => {
-                    movePlaylistItem(id, 0);
-                    closePlaylistItemContextMenu();
+                    moveSlide(id, 0);
+                    closeSlideContextMenu();
                 }
         }
     }
 
-    contextMenu.onblur = closePlaylistItemContextMenu;
+    contextMenu.onblur = closeSlideContextMenu;
 
     contextMenu.style.left = e.clientX;
     contextMenu.style.top = e.clientY;
     contextMenu.classList.remove("hidden");
 }
-function closePlaylistItemContextMenu() {
-    let contextMenu = document.getElementById("playlist-item-context-menu");
+function closeSlideContextMenu() {
+    let contextMenu = document.getElementById("slide-context-menu");
     contextMenu.classList.add("hidden");
 }
-document.addEventListener("click", closePlaylistItemContextMenu);
+document.addEventListener("click", closeSlideContextMenu);
 
-function onPlaylistItemClick(e) {
-    if (selectedItem)
-        selectedItem.classList.remove("selected");
-    if (curPlaylistItem.slides)
-        document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+function onSlideClick(e) {
+    if (selectedSlide)
+        selectedSlide.classList.remove("selected");
+    if (curSlideObj.subslides)
+        document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
             .classList.remove("selected");
-    else if (curPlaylistItem.numSlides)
-        document.getElementById(`slide-count-i${curPlaylistItem.id}`)
-            .textContent = `${curPlaylistItem.numSlides} slides`;
+    else if (curSlideObj.numSubslides)
+        document.getElementById(`subslide-count-i${curSlideObj.id}`)
+            .textContent = `${curSlideObj.numSubslides} subslides`;
 
     let id = parseInt(e.currentTarget.dataset.id);
-    curPlaylistItem = playlist[id];
-    curPlaylistItem.idx = parseInt(e.currentTarget.dataset.idx);
+    curSlideObj = playlist[id];
+    curSlideObj.idx = parseInt(e.currentTarget.dataset.idx);
 
-    let match = e.target.id.match(/^slide-preview-i\d+s(\d+)$/);
+    let match = e.target.id.match(/^subslide-preview-i\d+s(\d+)$/);
     if (match) {
-        curSlideIdx = parseInt(match[1]);
+        curSubslideIdx = parseInt(match[1]);
     } else {
-        curSlideIdx = 0;
+        curSubslideIdx = 0;
     }
-    curSlide = playlistItemToSlide( curPlaylistItem, curSlideIdx );
+    curSlide = slideObjToSlide( curSlideObj, curSubslideIdx );
 
     e.currentTarget.classList.add("selected");
-    if (curPlaylistItem.slides)
-        document.getElementById(`slide-preview-i${id}s${curSlideIdx}`)
+    if (curSlideObj.subslides)
+        document.getElementById(`subslide-preview-i${id}s${curSubslideIdx}`)
             .classList.add("selected");
-    else if (curPlaylistItem.numSlides)
-        document.getElementById(`slide-count-i${id}`)
-            .textContent = `Slide 1 of ${curPlaylistItem.numSlides}`;
-    selectedItem = e.currentTarget;
+    else if (curSlideObj.numSubslides)
+        document.getElementById(`subslide-count-i${id}`)
+            .textContent = `Subslide 1 of ${curSlideObj.numSubslides}`;
+    selectedSlide = e.currentTarget;
 
     refreshSlideShow()
 }
 
-function addPlaylistItemToDOM(id, idx = -1) {
-    let div = playlistItemSample.cloneNode(true);
+function addSlideToDOM(id, idx = -1) {
+    let div = slideSample.cloneNode(true);
 
     div.classList.remove("hidden");
     div.id = "";
     div.dataset.id = id;
     div.dataset.idx = idx === -1 ? playlistElement.children.length : idx;
 
-    div.addEventListener("click", onPlaylistItemClick);
-    div.addEventListener("contextmenu", openPlaylistItemContextMenu);
+    div.addEventListener("click", onSlideClick);
+    div.addEventListener("contextmenu", openSlideContextMenu);
 
     if (idx === -1) {
         playlistElement.appendChild(div);
@@ -215,43 +215,43 @@ function addPlaylistItemToDOM(id, idx = -1) {
 
     return div;
 }
-function editPlaylistItemInDOM(item) {
-    let idx = item.idx;
+function editSlideInDOM(slide) {
+    let idx = slide.idx;
     let div = playlistElement.children[idx];
 
-    div.children[0].innerHTML = item.template;
-    div.children[1].innerHTML = item.preview;
+    div.children[0].innerHTML = slide.template;
+    div.children[1].innerHTML = slide.preview;
     for (let e of Array.from(div.children)) {
         if (e.tagName === "P") {
             div.removeChild(e);
         }
     }
-    if (item.slides) {
-        for (let [s, slide] of Object.entries(item.slides)) {
+    if (slide.subslides) {
+        for (let [s, subslide] of Object.entries(slide.subslides)) {
             p = document.createElement("p");
-            p.classList.add("slide-preview");
-            p.id = `slide-preview-i${item.id}s${s}`;
-            p.textContent = slide.replaceAll("\n", "");
-            if (curPlaylistItem.id == item.id && curSlideIdx == s) {
+            p.classList.add("subslide-preview");
+            p.id = `subslide-preview-i${slide.id}s${s}`;
+            p.textContent = subslide.replaceAll("\n", "");
+            if (curSlideObj.id == slide.id && curSubslideIdx == s) {
                 p.classList.add("selected");
             }
             div.appendChild(p);
         }
-    } else if (item.numSlides) {
+    } else if (slide.numSubslides) {
         p = document.createElement("p");
-        p.classList.add("slide-count");
-        p.id = `slide-count-i${item.id}`;
-        if (curPlaylistItem.id == item.id)
-            p.textContent = `Slide ${curSlideIdx+1} of ${item.numSlides}`;
+        p.classList.add("subslide-count");
+        p.id = `subslide-count-i${slide.id}`;
+        if (curSlideObj.id == slide.id)
+            p.textContent = `Subslide ${curSubslideIdx+1} of ${slide.numSubslides}`;
         else
-            p.textContent = `${item.numSlides} slides`;
+            p.textContent = `${slide.numSubslides} subslides`;
         div.appendChild(p);
     }
 }
-function movePlaylistItem(id, offset) {
+function moveSlide(id, offset) {
     let oldIndex = parseInt(playlist[id].idx);
 
-    if (offset === 0) { // Delete item
+    if (offset === 0) { // Delete slide
         delete playlist[id];
         playlistElement.removeChild( playlistElement.children[oldIndex] );
     } else {
@@ -265,12 +265,12 @@ function movePlaylistItem(id, offset) {
         );
     }
 
-    // Reevaluate the index of every playlist item
+    // Reevaluate the index of every slide
     for (let [idx, e] of Object.entries(Array.from(playlistElement.children))) {
         e.dataset.idx = idx;
         playlist[e.dataset.id].idx = idx;
-        if (curPlaylistItem.id == e.dataset.id) {
-            curPlaylistItem.idx = idx;
+        if (curSlideObj.id == e.dataset.id) {
+            curSlideObj.idx = idx;
         }
     }
 }
@@ -278,17 +278,17 @@ function movePlaylistItem(id, offset) {
 // ===
 // Slide Controls
 // ===
-function nextItem() {
-    if (curPlaylistItem.idx === playlist.length - 1)
+function nextSlide() {
+    if (curSlideObj.idx === playlist.length - 1)
         return;
-    let nextPlaylistItem = playlistElement.children[curPlaylistItem.idx + 1]
-    nextPlaylistItem.click();
+    let nextSlide = playlistElement.children[curSlideObj.idx + 1]
+    nextSlide.click();
 }
-function prevItem() {
-    if (curPlaylistItem.idx === 0)
+function prevSlide() {
+    if (curSlideObj.idx === 0)
         return;
-    let prevPlaylistItem = playlistElement.children[curPlaylistItem.idx - 1]
-    prevPlaylistItem.click();
+    let prevSlide = playlistElement.children[curSlideObj.idx - 1]
+    prevSlide.click();
 }
 
 function blank() {
@@ -301,91 +301,91 @@ function unblank() {
         slideshowWindow.postMessage({type: "unblank"}, "*");
 }
 
-function prevSlide() {
-    if (curSlideIdx <= 0)
-        return;
+function prevSubslide() {
+    if (curSubslideIdx <= 0)
+        return prevSlide();
 
-    if (curPlaylistItem.slides) {
-        document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+    if (curSlideObj.subslides) {
+        document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
             .classList.remove("selected");
-        curSlide = playlistItemToSlide(curPlaylistItem, --curSlideIdx);
-        document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+        curSlide = slideObjToSlide(curSlideObj, --curSubslideIdx);
+        document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
             .classList.add("selected");
-    } else if (curPlaylistItem.numSlides) {
-        curSlide = playlistItemToSlide(curPlaylistItem, --curSlideIdx);
-        document.getElementById(`slide-count-i${curPlaylistItem.id}`)
-            .textContent = `Slide ${curSlideIdx+1} of ${curPlaylistItem.numSlides}`;
+    } else if (curSlideObj.numSubslides) {
+        curSlide = slideObjToSlide(curSlideObj, --curSubslideIdx);
+        document.getElementById(`subslide-count-i${curSlideObj.id}`)
+            .textContent = `Subslide ${curSubslideIdx+1} of ${curSlideObj.numSubslides}`;
     } else {
-        return;
+        return prevSlide();
     }
 
     refreshSlideShow();
 }
-function nextSlide() {
-    if (curPlaylistItem.slides) {
-        if (curSlideIdx >= curPlaylistItem.slides.length - 1)
-            return;
+function nextSubslide() {
+    if (curSlideObj.subslides) {
+        if (curSubslideIdx >= curSlideObj.subslides.length - 1)
+            return nextSlide();
 
-        document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+        document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
             .classList.remove("selected");
-        curSlide = playlistItemToSlide(curPlaylistItem, ++curSlideIdx);
-        document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+        curSlide = slideObjToSlide(curSlideObj, ++curSubslideIdx);
+        document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
             .classList.add("selected");
-    } else if (curPlaylistItem.numSlides) {
-        if (curSlideIdx >= curPlaylistItem.numSlides - 1)
-            return;
+    } else if (curSlideObj.numSubslides) {
+        if (curSubslideIdx >= curSlideObj.numSubslides - 1)
+            return nextSlide();
 
-        curSlide = playlistItemToSlide(curPlaylistItem, ++curSlideIdx);
-        document.getElementById(`slide-count-i${curPlaylistItem.id}`)
-            .textContent = `Slide ${curSlideIdx+1} of ${curPlaylistItem.numSlides}`;
+        curSlide = slideObjToSlide(curSlideObj, ++curSubslideIdx);
+        document.getElementById(`subslide-count-i${curSlideObj.id}`)
+            .textContent = `Subslide ${curSubslideIdx+1} of ${curSlideObj.numSubslides}`;
     } else {
-        return;
+        return nextSlide();
     }
 
     refreshSlideShow();
 }
-function jumpToSlide() {
-    if (!curPlaylistItem.slides) return;
+function jumpToSubslide() {
+    if (!curSlideObj.subslides) return;
 
     let searchTerm = window.prompt("Enter a search term:");
-    let resultIdx = curPlaylistItem.slides.findIndex(
-        slide => slide.includes(searchTerm)
+    let resultIdx = curSlideObj.subslides.findIndex(
+        subslide => subslide.includes(searchTerm)
     );
     if (resultIdx === -1) return;
 
-    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+    document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
         .classList.remove("selected");
-    curSlideIdx = resultIdx
-    curSlide = playlistItemToSlide(curPlaylistItem, curSlideIdx);
-    document.getElementById(`slide-preview-i${curPlaylistItem.id}s${curSlideIdx}`)
+    curSubslideIdx = resultIdx
+    curSlide = slideObjToSlide(curSlideObj, curSubslideIdx);
+    document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
         .classList.add("selected");
     refreshSlideShow()
 }
 
-function editItem(id = null) {
+function editSlide(id = null) {
     if (id === null) {
-        if (curPlaylistItem.id == -1) {
+        if (curSlideObj.id == -1) {
             alert("Select a slide first!");
             return;
         } else {
-            id = curPlaylistItem.id;
+            id = curSlideObj.id;
         }
     }
 
-    let url = "dialogs/edit-item.html";
-    let dialog = window.open(url, "edit-item", "width=800,height=500");
+    let url = "dialogs/edit-slide.html";
+    let dialog = window.open(url, "edit-slide", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
-            { type: "init", item: playlist[id] },
+            { type: "init", slide: playlist[id] },
             "*"
         );
     }, 1000);
 }
-function addItem(idx = Object.entries(playlist).length) {
-    let dialog = window.open("dialogs/edit-item.html", "edit-item", "width=800,height=500");
+function addSlide(idx = Object.entries(playlist).length) {
+    let dialog = window.open("dialogs/edit-slide.html", "edit-item", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
-            { type: "init", item: {id: "new", idx, template: ""} },
+            { type: "init", slide: {id: "new", idx, template: ""} },
             "*"
         );
     }, 1000);
@@ -400,17 +400,23 @@ function onOpenBtnClick() {
 }
 
 function closePlaylist() {
-    let playlistElement = document.getElementById("playlist-items");
     playlistElement.replaceChildren();
     playlist = {};
-    nextItemId = 0;
+    nextSlideId = 0;
+}
+
+function renderPreview(...fields) {
+    let nonEmptyFields = fields
+        .filter(x => x)
+        .map(s => s.replaceAll("<br>", "🆕"));
+    return nonEmptyFields.join(" - ");
 }
 
 async function openPlaylist(file) {
     closePlaylist();
 
     const push = item => {
-        id = nextItemId++;
+        id = nextSlideId++;
         playlist[id] = {id, idx: id, ...item};
     }
 
@@ -432,46 +438,46 @@ async function openPlaylist(file) {
             }
             case "1": {
                 let [title, location] = args
-                let slides = ["<Title Slide>"]
-                let slide = ""
+                let subslides = ["<Title Subslide>"]
+                let subslide = ""
                 do {
-                    slide += lines[++i] + "\n"
+                    subslide += lines[++i] + "\n"
                     if ( lines[i].match(/(N|E)$/) ) {
-                        slides.push(slide.slice(0, -2)) // Remove N|E and \n
-                        slide = ""
+                        subslides.push(subslide.slice(0, -2)) // Remove N|E and \n
+                        subslide = ""
                     }
                 } while (!lines[i].endsWith("E"))
                 push({
                     template: "bible",
-                    title, location, slides,
-                    preview: (title + " - " + location).replaceAll("<br>", "🆕"),
+                    title, location, subslides,
+                    preview: renderPreview(title, location),
                 })
                 break;
             }
             case "2": {
                 let [title, name] = args
-                let slides = ["<Title Slide>"]
-                let slide = ""
+                let subslides = ["<Title Subslide>"]
+                let subslide = ""
                 do {
-                    slide += lines[++i] + "\n"
+                    subslide += lines[++i] + "\n"
                     if ( lines[i].match(/N|E$/) ) {
-                        slides.push(slide.slice(0, -2)) // Remove N|E and \n
-                        slide = ""
+                        subslides.push(subslide.slice(0, -2)) // Remove N|E and \n
+                        subslide = ""
                     }
                 } while (!lines[i].endsWith("E"))
                 push({
                     template: "song",
-                    title, name, slides,
-                    preview: (title + " - " + name).replaceAll("<br>", "🆕"),
+                    title, name, subslides,
+                    preview: renderPreview(title, name),
                 })
                 break;
             }
             case "3": {
                 let [title, subtitle] = args
-                let preview = subtitle ? title + " - " + subtitle : title;
                 push({
                     template: "title",
-                    title, subtitle, preview,
+                    title, subtitle,
+                    preview: renderPreview(title, subtitle),
                 })
                 break;
             }
@@ -479,7 +485,8 @@ async function openPlaylist(file) {
                 let [source] = args
                 push({
                     template: "image",
-                    source
+                    source,
+                    preview: source,
                 })
                 break;
             }
@@ -495,7 +502,7 @@ async function openPlaylist(file) {
                 let [url] = args;
                 push({
                     template: "pdf",
-                    url, numSlides: Infinity, preview: url
+                    url, numSubslides: Infinity, preview: url
                 });
                 break;
             }
@@ -504,8 +511,8 @@ async function openPlaylist(file) {
     }
 
     for (let item of Object.values(playlist)) {
-        addPlaylistItemToDOM(item.id, item.idx);
-        editPlaylistItemInDOM(item);
+        addSlideToDOM(item.id, item.idx);
+        editSlideInDOM(item);
     }
 
     document.getElementById("save-playlist-btn").disabled = false;
@@ -519,42 +526,42 @@ function pastePlaylist() {
 function savePlaylist() {
     let textFile = "";
     for (let element of playlistElement.children) {
-        let item = playlist[element.dataset.id];
-        switch (item.template) {
+        let slide = playlist[element.dataset.id];
+        switch (slide.template) {
             case "welcome":
-                textFile += `0,${item.year},${item.month},${item.day}\n`;
+                textFile += `0,${slide.year},${slide.month},${slide.day}\n`;
                 break;
             case "bible":
-                textFile += `1,${item.title},${item.location}\n`
-                for (let [i,slide] of Object.entries(item.slides)) {
+                textFile += `1,${slide.title},${slide.location}\n`
+                for (let [i,subslide] of Object.entries(slide.subslides)) {
                     if (i == 0) continue;
-                    textFile += `${slide}N\n`;
+                    textFile += `${subslide}N\n`;
                 }
                 textFile = textFile.replace(/N\n$/, "E\n");
                 break;
             case "song":
-                textFile += `2,${item.title},${item.name}\n`
-                for (let [i,slide] of Object.entries(item.slides)) {
+                textFile += `2,${slide.title},${slide.name}\n`
+                for (let [i,subslide] of Object.entries(slide.subslides)) {
                     if (i == 0) continue;
-                    textFile += `${slide}N\n`;
+                    textFile += `${subslide}N\n`;
                 }
                 textFile = textFile.replace(/N\n$/, "E\n");
                 break;
             case "title":
-                if (item.subtitle)
-                    textFile += `3,${item.title},${item.subtitle}\n`;
+                if (slide.subtitle)
+                    textFile += `3,${slide.title},${slide.subtitle}\n`;
                 else
-                    textFile += `3,${item.title}\n`;
+                    textFile += `3,${slide.title}\n`;
                 break;
             case "image":
-                textFile += `4,${item.source}\n`;
+                textFile += `4,${slide.source}\n`;
                 break;
             case "youtube":
-                let list = [5, item.videoId, item.start, item.end].filter(x => x);
+                let list = [5, slide.videoId, slide.start, slide.end].filter(x => x);
                 textFile += list.join(",") + "\n";
                 break;
             case "pdf":
-                textFile += `6,${item.url}\n`;
+                textFile += `6,${slide.url}\n`;
                 break;
         }
     };
@@ -607,19 +614,25 @@ function resetPlayback() {
 // Keyboard Shortcuts
 // ===
 const KEY_MAP = {
-    "ArrowRight": nextItem,
-    "ArrowDown": nextItem,
-    "ArrowLeft": prevItem,
-    "ArrowUp": prevItem,
-    "PageDown": nextSlide,
-    "PageUp": prevSlide,
+    "ArrowRight": nextSubslide,
+    "ArrowDown": nextSubslide,
+    "PageDown": nextSubslide,
+    "ArrowLeft": prevSubslide,
+    "ArrowUp": prevSubslide,
+    "PageUp": prevSubslide,
+    "CArrowRight": nextSlide,
+    "CArrowDown": nextSlide,
+    "CPageDown": nextSlide,
+    "CArrowLeft": prevSlide,
+    "CArrowUp": prevSlide,
+    "CPageUp": prevSlide,
     "Cb": blank,
     "b": unblank,
-    "Ce": editItem,
-    "Ca": addItem,
-    "j": jumpToSlide,
-    "CSArrowUp": () => movePlaylistItem(curPlaylistItem.id, -1),
-    "CSArrowDown": () => movePlaylistItem(curPlaylistItem.id, 1),
+    "Ce": editSlide,
+    "Ca": addSlide,
+    "j": jumpToSubslide,
+    "CSArrowUp": () => moveSlide(curSlideObj.id, -1),
+    "CSArrowDown": () => moveSlide(curSlideObj.id, 1),
 }
 window.addEventListener("keydown", e => {
     let key = (
@@ -639,26 +652,26 @@ window.addEventListener("keydown", e => {
 // ===
 // Message Receiving
 // ===
-function handleEditItemMsg(data) {
-    let {item} = data;
-    let {id, idx} = item;
+function handleEditSlideMsg(data) {
+    let {slide} = data;
+    let {id, idx} = slide;
 
     if (id === "new") {
-        id = nextItemId++;
-        playlist[id] = {...item, id, idx};
-        addPlaylistItemToDOM(id, idx);
+        id = nextSlideId++;
+        playlist[id] = {...slide, id, idx};
+        addSlideToDOM(id, idx);
     } else {
-        item = {...playlist[id], ...item};
-        playlist[id] = item;
+        slide = {...playlist[id], ...slide};
+        playlist[id] = slide;
 
-        if (curPlaylistItem.id == id) {
-            curPlaylistItem = item;
-            curSlide = playlistItemToSlide(item, curSlideIdx);
+        if (curSlideObj.id == id) {
+            curSlideObj = slide;
+            curSlide = slideObjToSlide(slide, curSubslideIdx);
             refreshSlideShow();
         }
     }
 
-    editPlaylistItemInDOM(playlist[id]);
+    editSlideInDOM(playlist[id]);
 }
 
 function handlePastePlaylist(e) {
@@ -669,8 +682,8 @@ function handlePastePlaylist(e) {
 
 window.addEventListener("message", e => {
     switch(e.data.type) {
-        case "edit-item":
-            handleEditItemMsg(e.data);
+        case "edit-slide":
+            handleEditSlideMsg(e.data);
             break;
         case "paste-playlist":
             handlePastePlaylist(e.data);
@@ -704,8 +717,8 @@ async function refreshTranslations(lang) {
 }
 
 window.addEventListener("load", e => {
-    playlistElement = document.getElementById("playlist-items");
-    playlistItemSample = document.getElementById("playlist-item-sample");
+    playlistElement = document.getElementById("slides");
+    slideSample = document.getElementById("slide-sample");
     
     timerElement = document.getElementById("timer");
 
@@ -731,4 +744,8 @@ function wsConnect() {
         let p = document.getElementById("server-connect-status");
         p.innerText = "Connection lost";
     })
+}
+
+function remoteQrOpen() {
+    window.open("dialogs/remote-qr.html", "remote-qr", "width=500,height=500")
 }

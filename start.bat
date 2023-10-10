@@ -1,1 +1,1 @@
-powershell.exe -ExecutionPolicy unrestricted -command "& '.\start.ps1'"
+npm start

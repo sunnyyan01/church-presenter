@@ -1,31 +1,31 @@
 let editorMode = "quick";
 
-function dataTableToItem() {
-    let item = {};
-    let table = document.getElementById("item-data-table");
+function dataTableToSlide() {
+    let slide = {};
+    let table = document.getElementById("slide-data-table");
     for (let row of table.rows) {
         if (!row.classList.contains("hidden")) {
-            let key = row.id.replace("item-data-table-row--", "");
+            let key = row.id.replace("slide-data-table-row--", "");
             let valueElement = row.children[1].children[0];
 
-            if (key === "slides") {
-                item[key] = valueElement.value.split(/N\s*\n/);
-                item[key].unshift("<Title Slide>");
-            } else if (key === "numSlides") {
-                item[key] = valueElement.value || Infinity;
+            if (key === "subslides") {
+                slide[key] = valueElement.value.split(/N\s*\n/);
+                slide[key].unshift("<Title Slide>");
+            } else if (key === "numSubslides") {
+                slide[key] = valueElement.value || Infinity;
             } else {
-                item[key] = valueElement.value;
+                slide[key] = valueElement.value;
             }
         }
     }
-    return item;
+    return slide;
 }
-function itemToDataTable(itemData) {
-    let table = document.getElementById("item-data-table");
+function slideToDataTable(slide) {
+    let table = document.getElementById("slide-data-table");
     table.classList.add("hidden");
     for (let row of table.rows) {
-        let key = row.id.replace("item-data-table-row--","");
-        let val = itemData[key];
+        let key = row.id.replace("slide-data-table-row--","");
+        let val = slide[key];
 
         if (val === undefined) {
             if (key !== "preview") // Preview should not be ever hidden
@@ -34,7 +34,7 @@ function itemToDataTable(itemData) {
         }
 
         let valueElement = row.children[1].children[0];
-        if (key === "slides") {
+        if (key === "subslides") {
             valueElement.value = val.splice(1).join("N\n");
         } else {
             valueElement.value = val;
@@ -48,19 +48,19 @@ window.addEventListener("message", e => {
     if (e.data.type != "init")
         return;
     
-    let itemData = e.data.item;
+    let slide = e.data.slide;
 
-    itemToDataTable(itemData);
+    slideToDataTable(slide);
 
     document.getElementById("save-btn").classList.remove("hidden");
 })
 
 function getCurValue(key) {
-    let row = document.getElementById(`item-data-table-row--${key}`);
+    let row = document.getElementById(`slide-data-table-row--${key}`);
     return row.children[1].children[0].value;
 }
 function setValue(key, val) {
-    let row = document.getElementById(`item-data-table-row--${key}`);
+    let row = document.getElementById(`slide-data-table-row--${key}`);
     row.children[1].children[0].value = val;
 }
 
@@ -68,9 +68,9 @@ function switchMode(button) {
     let jsonEditor = document.getElementById("json-editor")
 
     if (button.dataset.mode === "quick") {
-        let itemData;
+        let slide;
         try {
-            itemData = JSON.parse(jsonEditor.value);
+            slide = JSON.parse(jsonEditor.value);
         } catch (e) {
             console.error(e);
             alert("Invalid JSON, please correct before changing");
@@ -80,14 +80,14 @@ function switchMode(button) {
             c.classList.remove("selected");
         button.classList.add("selected");
         jsonEditor.classList.add("hidden");
-        itemToDataTable(itemData);
-        document.getElementById("item-data-table").classList.remove("hidden");
+        slideToDataTable(slide);
+        document.getElementById("slide-data-table").classList.remove("hidden");
     } else { // "json"
         for (let c of button.parentElement.children)
             c.classList.remove("selected");
         button.classList.add("selected");
-        document.getElementById("item-data-table").classList.add("hidden");
-        jsonEditor.value = JSON.stringify(dataTableToItem());
+        document.getElementById("slide-data-table").classList.add("hidden");
+        jsonEditor.value = JSON.stringify(dataTableToSlide());
         jsonEditor.classList.remove("hidden");
     }
 
@@ -98,15 +98,15 @@ function onTemplateChange() {
     let changeTo = document.getElementById("template-selector").value;
     let fieldsToEnable = {
         "welcome": ["year", "month", "day"],
-        "bible": ["title", "location", "slides"],
-        "song": ["title", "name", "slides"],
+        "bible": ["title", "location", "subslides"],
+        "song": ["title", "name", "subslides"],
         "title": ["title", "subtitle"],
         "image": ["source"],
         "youtube": ["videoId","start","end"],
         "pdf": ["url", "numSlides"],
-    }[changeTo];
+    }[changeTo] || [];
     for (let key of fieldsToEnable) {
-        document.getElementById(`item-data-table-row--${key}`)
+        document.getElementById(`slide-data-table-row--${key}`)
             .classList.remove("hidden");
     }
 }
@@ -166,8 +166,8 @@ function autoTimeConvert() {
 async function autoSlides(force = false) {
     if (getCurValue("template") != "bible")
         return;
-    // If slides are already filled, don't overwrite with all auto
-    if (!force && getCurValue("slides"))
+    // If subslides are already filled, don't overwrite with all auto
+    if (!force && getCurValue("subslides"))
         return;
 
     let loadingDiv = document.getElementById("autoSlides-loading");
@@ -177,7 +177,7 @@ async function autoSlides(force = false) {
     let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
     let text = await resp.text();
     if (resp.ok) {
-        setValue("slides", text);
+        setValue("subslides", text);
     } else {
         alert("Error: " + text);
     }
@@ -185,23 +185,27 @@ async function autoSlides(force = false) {
     loadingDiv.classList.add("hidden");
 }
 
+function renderPreview(...fields) {
+    let nonEmptyFields = fields
+        .filter(x => x)
+        .map(s => s.replaceAll("<br>", "🆕"));
+    return nonEmptyFields.join(" - ");
+}
+
 function autoPreview() {
     let preview = "";
     switch (getCurValue("template")) {
         case "welcome":
-            preview = getCurValue("datetime");
+            preview = [getCurValue("year"), getCurValue("month"), getCurValue("day")].join("/");
             break;
         case "bible":
-            preview = getCurValue("title") + " - " + getCurValue("location");
+            preview = renderPreview( getCurValue("title"), getCurValue("location") );
             break;
         case "song":
-            preview = getCurValue("title") + " - " + getCurValue("name");
+            preview = renderPreview( getCurValue("title"), getCurValue("name") );
             break;
         case "title":
-            let subtitle = getCurValue("subtitle");
-            preview = subtitle
-                ? getCurValue("title") + " - " + subtitle
-                : getCurValue("title");
+            preview = renderPreview( getCurValue("title"), getCurValue("subtitle") );
             break;
         case "image":
             preview = getCurValue("source");
@@ -230,10 +234,10 @@ function allAuto() {
 }
 
 function save() {
-    let item;
+    let slide;
     try {
-        item = editorMode === "quick"
-            ? dataTableToItem()
+        slide = editorMode === "quick"
+            ? dataTableToSlide()
             : JSON.parse(document.getElementById("json-editor").value);
     } catch (e) {
         console.error(e);
@@ -242,7 +246,7 @@ function save() {
     }
 
     window.opener.postMessage(
-        {type: "edit-item", item}, "*"
+        {type: "edit-slide", slide}, "*"
     )
 
     window.close();

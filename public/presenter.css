@@ -56,31 +56,31 @@ body {
     height: 70%;
     max-height: 70%;
 }
-.playlist-items {
+.slides {
     overflow-y: auto;
 }
-.playlist-item.selected {
+.slide.selected {
     border: 2px solid blue;
 }
-.playlist-item {
+.slide {
     padding: 10px;
     border: 1px solid black;
     border-radius: 20px;
     cursor: pointer;
     margin: 10px 0px;
 }
-.playlist-item > * {
+.slide > * {
     margin: 0px;
 }
-p.slide-preview {
+p.subslide-preview {
     white-space: nowrap;
     overflow: hidden;
     border: 1px solid rgba(0,0,0,0);
 }
-p.slide-preview:hover {
+p.subslide-preview:hover {
     border: 1px solid cyan;
 }
-p.slide-preview.selected {
+p.subslide-preview.selected {
     background-color: cyan;
 }
 
