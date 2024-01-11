@@ -14,12 +14,16 @@ let nextSlideId = 0;
 
 let playlistElement, slideSample;
 
-let slideshowWindow;
+let slideshowWindow, previewIframe;
 function refreshSlideShow() {
     if (slideshowWindow)
         slideshowWindow.postMessage(
             {type: "change-slide", slide: curSlide}, "*"
         );
+    // if (previewIframe)
+    //     previewIframe.contentWindow.postMessage(
+    //         {type: "change-slide", slide: curSlide}, "*"
+    //     );
 }
 
 function slideObjToSlide(slide, subslideIdx = 0) {
@@ -219,16 +223,19 @@ function editSlideInDOM(slide) {
     let idx = slide.idx;
     let div = playlistElement.children[idx];
 
-    div.children[0].innerHTML = slide.template;
-    div.children[1].innerHTML = slide.preview;
     for (let e of Array.from(div.children)) {
-        if (e.tagName === "P") {
+        if (e.tagName == "H4") {
+            e.textContent = slide.template;
+        } else if (e.tagName == "H2") {
+            e.textContent = slide.preview;
+        } else {
             div.removeChild(e);
         }
     }
+
     if (slide.subslides) {
         for (let [s, subslide] of Object.entries(slide.subslides)) {
-            p = document.createElement("p");
+            let p = document.createElement("p");
             p.classList.add("subslide-preview");
             p.id = `subslide-preview-i${slide.id}s${s}`;
             p.textContent = subslide.replaceAll("\n", "");
@@ -238,7 +245,7 @@ function editSlideInDOM(slide) {
             div.appendChild(p);
         }
     } else if (slide.numSubslides) {
-        p = document.createElement("p");
+        let p = document.createElement("p");
         p.classList.add("subslide-count");
         p.id = `subslide-count-i${slide.id}`;
         if (curSlideObj.id == slide.id)
@@ -246,6 +253,15 @@ function editSlideInDOM(slide) {
         else
             p.textContent = `${slide.numSubslides} subslides`;
         div.appendChild(p);
+    } else if (slide.template == "youtube") {
+        let controls = document.getElementById("playback-controls-sample").cloneNode(true);
+        controls.id = `playback-controls-i${slide.id}`;
+        controls.classList.remove("hidden");
+
+        controls.children[0].addEventListener("click", togglePlayback);
+        controls.children[1].addEventListener("click", resetPlayback);
+
+        div.appendChild(controls);
     }
 }
 function moveSlide(id, offset) {
@@ -291,14 +307,9 @@ function prevSlide() {
     prevSlide.click();
 }
 
-function blank() {
+function toggleBlank() {
     if (slideshowWindow)
         slideshowWindow.postMessage({type: "blank"}, "*");
-}
-
-function unblank() {
-    if (slideshowWindow)
-        slideshowWindow.postMessage({type: "unblank"}, "*");
 }
 
 function prevSubslide() {
@@ -403,6 +414,12 @@ function closePlaylist() {
     playlistElement.replaceChildren();
     playlist = {};
     nextSlideId = 0;
+
+    document.getElementById("save-playlist-btn").classList.add("hidden");
+    document.getElementById("close-playlist-btn").classList.add("hidden");
+    document.getElementById("playlist-name").textContent = "";
+
+    document.getElementById("playlist-setup-section").classList.remove("hidden");
 }
 
 function renderPreview(...fields) {
@@ -413,6 +430,9 @@ function renderPreview(...fields) {
 }
 
 async function openPlaylist(file) {
+    if (!file)
+        return;
+
     closePlaylist();
 
     const push = item => {
@@ -515,8 +535,11 @@ async function openPlaylist(file) {
         editSlideInDOM(item);
     }
 
-    document.getElementById("save-playlist-btn").disabled = false;
-    document.getElementById("playlist-name").innerText = `Current playlist: ${file.name}`;
+    document.getElementById("save-playlist-btn").classList.remove("hidden");
+    document.getElementById("close-playlist-btn").classList.remove("hidden");
+    document.getElementById("playlist-name").textContent = file.name;
+
+    document.getElementById("playlist-setup-section").classList.add("hidden");
 }
 
 function pastePlaylist() {
@@ -577,6 +600,18 @@ function savePlaylist() {
 
 
 // ===
+// Preview Controls
+// ===
+async function setupPreview() {
+    let captureStream = await navigator.mediaDevices.getDisplayMedia();
+    let video = document.getElementById("preview-frame");
+    video.srcObject = captureStream;
+    video.play();
+    document.getElementById("setup-preview-btn").hidden = true;
+}
+
+
+// ===
 // Slideshow Controls
 // ===
 function openSlideshow() {
@@ -589,25 +624,34 @@ function closeSlideshow() {
     slideshowWindow = null;
 }
 
-function addDuplicateSlideshow() {
-    window.open("duplicateSlideshow.html", "", "popup");
-}
-
 // ===
 // Timer / Playback Controls
 // ===
-let timer, timerElement, timerStart;
-function togglePlayback() {
-    slideshowWindow.postMessage({type: "togglePlayback"});
+let curPlaybackControls;
+function togglePlayback(e) {
+    e.stopPropagation();
+
+    let slideId = e.currentTarget.parentElement.parentElement.dataset.id;
+    let slide = playlist[slideId];
+    slideshowWindow.postMessage({
+        type: "togglePlayback",
+        videoId: slide.videoId, start: slide.start, end: slide.end,
+    });
+
+    if (curPlaybackControls !== e.currentTarget.parentElement) {
+        if (curPlaybackControls)
+            curPlaybackControls.children[2].textContent = "";
+        curPlaybackControls = e.currentTarget.parentElement;
+    }
 }
 
-function setTimer(text) {
-    timerElement.textContent = text;
+function setTimeDisplay({text}) {
+    curPlaybackControls.children[2].textContent = text;
 }
 
-function resetPlayback() {
+function resetPlayback(e) {
     slideshowWindow.postMessage({type: "stopPlayback"});
-    timerElement.textContent = ""
+    curPlaybackControls.children[2].textContent = "";
 }
 
 // ===
@@ -626,8 +670,7 @@ const KEY_MAP = {
     "CArrowLeft": prevSlide,
     "CArrowUp": prevSlide,
     "CPageUp": prevSlide,
-    "Cb": blank,
-    "b": unblank,
+    "b": toggleBlank,
     "Ce": editSlide,
     "Ca": addSlide,
     "j": jumpToSubslide,
@@ -688,29 +731,37 @@ window.addEventListener("message", e => {
         case "paste-playlist":
             handlePastePlaylist(e.data);
             break;
-        case "set-timer":
-            setTimer(e.data.text);
+        case "set-time-display":
+            setTimeDisplay(e.data);
             break;
     }
 })
 
+const TEXT_NODE_TYPES = ["H1", "H2", "H3", "H4", "H5", "H6", "P"]
 async function refreshTranslations(lang) {
     if (lang) {
         localStorage.setItem("lang", lang);
     } else {
         lang = localStorage.getItem("lang") || "en";
-        document.getElementById("lang-selector").value = lang;
+        // document.getElementById("lang-selector").value = lang;
     }
     let resp = await fetch(`./translations/${lang}.csv`);
     if (resp.ok) {
         let text = (await resp.text()).trim();
         let sep = text.includes("\r") ? "\r\n" : "\n";
         for (let line of text.split(sep)) {
-            let [id, string] = line.split(",");
+            let [id, string] = line.split(",", 2);
             try {
-                document.getElementById(id).innerHTML = string;
+                let e = document.getElementById(id);
+                if (
+                    TEXT_NODE_TYPES.includes(e.nodeName) ||
+                    (e.nodeName === "DIV" && e.classList.contains("text-button"))
+                )
+                    e.textContent = string;
+                else
+                    e.title = string;
             } catch {
-                console.error(`Error setting ${id}`);
+                // console.error(`Error setting ${id}`);
             }
         }
     }
@@ -719,6 +770,8 @@ async function refreshTranslations(lang) {
 window.addEventListener("load", e => {
     playlistElement = document.getElementById("slides");
     slideSample = document.getElementById("slide-sample");
+
+    // previewIframe = document.getElementById("preview-iframe");
     
     timerElement = document.getElementById("timer");
 

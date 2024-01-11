@@ -1,25 +1,17 @@
 playlist-header,Playlist
-control-categories--slide,Slide
-prev-slide-btn-label,Prev Slide
-next-slide-btn-label,Next Slide
-prev-subslide-btn-label,Prev Subslide
-next-subslide-btn-label,Next Subslide
-jump-to-subslide-btn-label,Jump to Subslide
-blank-btn-label,Blank
-unblank-btn-label,Unblank
-edit-slide-btn-label,Edit Slide
-add-slide-btn-label,Add Slide
-control-categories--playlist,Playlist
-open-playlist-btn,Open Playlist
-new-playlist-btn,New Playlist
 save-playlist-btn,Save Playlist
-playlist-name,No playlist currently open
-control-categories--slideshow,Windows
-open-slideshow-btn,Open Slideshow
-close-slideshow-btn,Close Slideshow
-control-categories--playback,Video Playback
+close-playlist-btn,Close Playlist
+playlist-setup-text,No playlist currently open
+open-playlist-btn,Open Playlist
+playlist-setup-text2,or
+paste-playlist-btn,Paste Playlist
 preview-header,Preview
-control-categories--language,Language
-control-categories--remote,Remote Control
-server-connect-btn,Connect to server
-remote-qr-btn,Use remote
+setup-preview-btn,Setup
+control-group-label-slide,Slide Control
+prev-slide-btn,Prev Slide (←/↑/PgUp)
+next-slide-btn,Next Slide (→/↓/PgDn)
+blank-btn,Blank Screen (B)
+control-group-label-setup,Setup
+open-slideshow-btn,Open Slideshow Window
+remote-control-btn,Setup Remote Control
+settings-btn,Settings

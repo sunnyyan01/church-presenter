@@ -11,11 +11,50 @@
 
 <body>
 
-<div class="section playlist-section">
-    <h1 id="playlist-header"></h2>
+<div class="playlist-section">
+    <div class="playlist-section-header">
+        <h1 id="playlist-header"></h1>
+        <p id="playlist-name"></p>
+        <div id="save-playlist-btn" class="button icon-button hidden" onclick="savePlaylist()">
+            <img src="icons/save.svg">
+        </div>
+        <div id="close-playlist-btn" class="button icon-button hidden" onclick="closePlaylist()">
+            <img src="icons/close-square.svg">
+        </div>
+    </div>
+    <div id="playlist-setup-section" class="playlist-setup-section">
+        <p id="playlist-setup-text"></p>
+        <div
+            id="open-playlist-btn" class="button text-button primary"
+            onclick="onOpenBtnClick()"
+        >
+            Open Playlist
+        </div>
+        <input
+            id="playlist-open-picker" class="hidden"
+            type="file" accept=".txt"
+            onchange="openPlaylist(this.files[0])"
+        />
+        <p id="playlist-setup-text2"></p>
+        <div
+            id="paste-playlist-btn" class="button text-button secondary"
+            onclick="pastePlaylist()"
+        >
+            Paste Playlist
+        </div>
+    </div>
     <div id="slide-sample" class="slide hidden">
         <h4></h4>
         <h2></h2>
+    </div>
+    <div id="playback-controls-sample" class="playback-controls hidden">
+        <div class="button icon-button">
+            ⏯
+        </div>
+        <div class="button icon-button">
+            ⏹
+        </div>
+        <p class="time-display"></p>
     </div>
     <div id="slide-context-menu" class="context-menu hidden">
         <button data-action="edit">
@@ -41,113 +80,65 @@
     </div>
 </div>
 
-<div class="section preview-section">
+<div class="preview-section">
     <h1 id="preview-header"></h1>
-    <!--Copied from duplicateSlideShow.html-->
-    <button id="button" onclick="startCapture()">
-        Set Capture
-    </button>
-    <video id="preview" class="preview"></video>
+    <!-- <iframe id="preview-iframe" src="slideshow.html"></iframe> -->
+    <div
+        id="setup-preview-btn" class="button text-button primary"
+        onclick="setupPreview()"
+    >
+        Setup
+    </div>
+    <video id="preview-frame" class="preview"></video>
 </div>
 
-<table class="section left-controls-section">
-    <tr class="controls-row">
-        <th><h4 id="control-categories--playlist"></h4></th>
-        <td>
-            <button onclick="onOpenBtnClick()" id="open-playlist-btn"></button>
-            <input
-                id="playlist-open-picker" class="hidden"
-                type="file" accept=".txt"
-                onchange="openPlaylist(this.files[0])"
-            />
-            <button onclick="pastePlaylist()" id="new-playlist-btn"></button>
-            <button id="save-playlist-btn" onclick="savePlaylist()" disabled>
-            </button>
-            <p id="playlist-name">No playlist currently open</p>
-        </td>
-    </tr>
-
-    <tr class="controls-row">
-        <th><h4 id="control-categories--slide"></h4></th>
-        <td>
-            <div>
-                <button onclick="prevSlide()">
-                    <span id="prev-slide-btn-label"></span> (Ctrl + ↑)
-                </button>
-                <button onclick="nextSlide()">
-                    <span id="next-slide-btn-label"></span> (Ctrl + ↓)
-                </button>
+<div class="controls-section">
+    <div class="control-group">
+        <h6 id="control-group-label-slide">Slide Control</h6>
+        <div>
+            <div
+                id="prev-slide-btn" class="button icon-button"
+                onclick="prevSubslide()"
+            >
+                <img src="icons/up-arrow.svg">
             </div>
-            <div>
-                <button onclick="prevSubslide()">
-                    <span id="prev-subslide-btn-label"></span> (←,↑,PgUp)
-                </button>
-                <button onclick="nextSubslide()">
-                    <span id="next-subslide-btn-label"></span> (→,↓,PgDn)
-                </button>
-                <button onclick="jumpToSubslide()">
-                    <span id="jump-to-subslide-btn-label"></span> (J)
-                </button>
+            <div
+                id="next-slide-btn" class="button icon-button"
+                onclick="nextSubslide()"
+            >
+                <img src="icons/down-arrow.svg">
             </div>
-            <div>
-                <button onclick="blank()">
-                    <span id="blank-btn-label"></span> (Ctrl + B)
-                </button>
-                <button onclick="unblank()">
-                    <span id="unblank-btn-label"></span> (B)
-                </button>
+            <div
+                id="blank-btn" class="button icon-button"
+                onclick="blank()"
+            >
+                <img src="icons/black-screen.svg">
             </div>
-            <div>
-                <button onclick="editSlide()">
-                    <span id="edit-slide-btn-label"></span> (Ctrl + E)
-                </button>
-                <button onclick="addSlide()">
-                    <span id="add-slide-btn-label"></span> (Ctrl + A)
-                </button>
+        </div>
+    </div>
+    <div class="control-group">
+        <h6 id="control-group-label-setup">Setup</h6>
+        <div>
+            <div
+                id="open-slideshow-btn" class="button icon-button"
+                onclick="openSlideshow()"
+            >
+                <img src="icons/window-plus.svg">
             </div>
-        </td>
-    </tr>
-    <tr class="controls-row">
-        <th><h4 id="control-categories--remote"></h4></th>
-        <td>
-            <button onclick="wsConnect()" id="server-connect-btn"></button>
-            <p id="server-connect-status"></p>
-            <button onclick="remoteQrOpen()" id="remote-qr-btn"></button>
-        </td>
-    </tr>
-</table>
+            <div
+                id="remote-control-btn" class="button icon-button"
+                onclick="remoteQrOpen()"
+            >
+                <img src="icons/remote-control.svg">
+            </div>
+            <div id="settings-btn" class="button icon-button">
+                <img src="icons/settings.svg">
+            </div>
+        </div>
+    </div>
+</div>
 
-<table class="section right-controls-section">
-    <tr class="controls-row">
-        <th><h4 id="control-categories--slideshow">Windows:</h4></th>
-        <td>
-            <button onclick="openSlideshow()" id="open-slideshow-btn">
-            </button>
-            <button onclick="closeSlideshow()" id="close-slideshow-btn">
-            </button>
-        </td>
-    </tr>
-
-    <tr class="controls-row">
-        <th><h4 id="control-categories--playback"></h4></th>
-        <td>
-            <p><span id="timer"></span></p>
-            <button onclick="togglePlayback()">⏯</button>
-            <button onclick="resetPlayback()">⏹</button>
-        </td>
-    </tr>
-    <tr class="controls-row">
-        <th><h4 id="control-categories--language"></h4></th>
-        <td>
-            <select id="lang-selector" onchange="refreshTranslations(this.value)">
-                <option value="en">English</option>
-                <option disabled value="zh_cn">简体中文</option>
-            </select>
-        </td>
-    </tr>
-</table>
-
-<p class="version-info">Church Presenter v0.6.0 (11 Oct 2023) © Sunny Yan 2023</p>
+<p class="version-info">Church Presenter v0.7.0 (11 Jan 2024) © Sunny Yan 2024</p>
 
 </body>
 </html>

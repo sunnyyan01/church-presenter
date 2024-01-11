@@ -30,31 +30,55 @@ body {
     border-bottom-right-radius: 16px;
 }
 
-.section {
+.playlist-section, .preview-section {
     display: flex;
     flex-direction: column;
     width: calc(50% - 6px);
+    height: 75%;
     margin: 3px;
 }
 
-.section > * {
+.playlist-section > * {
     margin: 3px 0px;
 }
-.section > *:first-child {
+.playlist-section > *:first-child {
     margin-top: 0px;
 }
-.section > *:last-child {
+.playlist-section > *:last-child {
     margin-bottom: 0px;
 }
 
-.preview-section .preview {
+.preview-section #setup-preview-btn {
+    align-self: center;
+    justify-self: center;
+}
+.preview-section .preview, .preview-section iframe {
     width: 100%;
     aspect-ratio: 16 / 9;
 }
 
-.playlist-section {
-    height: 70%;
-    max-height: 70%;
+.playlist-setup-section {
+    width: 500px;
+    margin: auto;
+    border: 2px solid grey;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+}
+.playlist-setup-section #playlist-setup-text {
+    margin-bottom: 10px;
+}
+.playlist-section-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.playlist-section-header h1 {
+    margin-right: auto;
+}
+.playlist-section-header .button {
+    width: 40px;
+    height: 40px;
 }
 .slides {
     overflow-y: auto;
@@ -83,37 +107,47 @@ p.subslide-preview:hover {
 p.subslide-preview.selected {
     background-color: cyan;
 }
-
-table.left-controls-section, table.right-controls-section {
-    width: unset;
-    border: 1px solid grey;
-    border-radius: 20px;
-    align-self: center;
-    padding: 5px;
-}
-.controls-row > * {
-    border-bottom: 1px solid grey;
-    padding: 5px 0px;
-}
-.controls-row:last-child > * {
-    border: none;
-}
-.controls-row td {
+.playback-controls {
     display: flex;
     flex-direction: row;
-    align-items: center;
 }
-.controls-row td > * {
-    width: 150px;
-    margin: 0px 5px;
+.playback-controls * {
+    margin: 0px 10px;
 }
-.controls-row td button {
-    min-height: 30px;
-    margin-top: 1px;
-    margin-bottom: 1px;
+.playback-controls .button {
+    margin: 0px;
+}
+.playback-controls > p {
+    margin: auto 0px;
 }
 
-button {
-    border-radius: 20px;
-    width: 150px;
+.controls-section {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+}
+.control-group {
+    padding: 0px 5px;
+    border-right: 1px solid grey;
+}
+.control-group:last-child {
+    border-right: none;
+}
+.control-group h6 {
+    margin: 0px;
+    text-transform: uppercase;
+    font-size: 14px;
+    text-align: center;
+}
+.control-group div {
+    display: flex;
+    flex-direction: row;
+}
+.control-group div .button {
+    margin: 0px 5px;
+    width: 70px;
+    height: 70px;
 }

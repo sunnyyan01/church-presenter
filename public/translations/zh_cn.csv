@@ -1,22 +1,17 @@
 playlist-header,流程
-control-categories--slide,Slide Controls
-prev-slide-btn-label,上一个程序
-next-slide-btn-label,下一个程序
-prev-subslide-btn-label,上一页
-next-subslide-btn-label,下一页
-jump-to-subslide-btn-label,跳去页
-blank-btn-label,黑屏
-unblank-btn-label,取消黑屏
-edit-slide-btn-label,编辑程序
-add-slide-btn-label,添加程序
-control-categories--playlist,流程
-open-playlist-btn,打开流程
-new-playlist-btn,创新流程
 save-playlist-btn,保存流程
-playlist-name,现在没开流程
-control-categories--slideshow,Windows
-open-slideshow-btn,Open Slideshow
-close-slideshow-btn,Close Slideshow
-control-categories--playback,视频播放
-preview-header,Preview
-control-categories--language,语言
+close-playlist-btn,关闭流程
+playlist-setup-text,现在没开流程，可以
+open-playlist-btn,打开流程
+playlist-setup-text2,或
+paste-playlist-btn,创新流程
+preview-header,预览
+setup-preview-btn,打开预览
+control-group-label-slide,幻灯片控制
+prev-slide-btn,上一页 (←/↑/PgUp)
+next-slide-btn,下一页 (→/↓/PgDn)
+blank-btn,黑屏 (B)
+control-group-label-setup,幻灯片设置
+open-slideshow-btn,打开幻灯片窗口
+remote-control-btn,手机遥控设置
+settings-btn,其他设置

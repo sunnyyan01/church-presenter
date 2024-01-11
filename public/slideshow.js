@@ -1,24 +1,14 @@
 window.curTemplate = ""
-let ytPlayer;
-let ytPlayingInterval;
+let ytPlayer, ytPlayingInterval;
+let ytPlayerReady = false;
 let pdfCur = {url: "", pageNum: -1, renderTask: null, renderComplete: true};
 let pdfObj;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.js';
 
 function youtubeSlideHandler() {
-    if (ytPlayer) {
-        onPlayerReady();
-    } else {
-        ytPlayer = new YT.Player("youtube-player-element", {
-            height: window.innerHeight.toString(),
-            width: window.innerWidth.toString(),
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            },
-        });
-    }
+    if (ytPlayerReady)
+        cueVideoFromDataset();
 }
 async function pdfSlideHandler() {
     let canvas = document.getElementById("pdf-canvas-element");
@@ -98,14 +88,12 @@ function onChangeSlide({slide}) {
     window.curTemplate = slide.template;
 }
 
-function onBlank() {
+function onToggleBlank() {
     let curTemplate = document.getElementById(window.curTemplate + "-template");
-    curTemplate.classList.remove("showing");
-}
-
-function onUnblank() {
-    let curTemplate = document.getElementById(window.curTemplate + "-template");
-    curTemplate.classList.add("showing");
+    if (curTemplate.classList.contains("showing"))
+        curTemplate.classList.remove("showing");
+    else
+        curTemplate.classList.add("showing");
 }
 
 function onScroll({ direction }) {
@@ -124,15 +112,24 @@ function onShow() {
     window.focus();
 }
 
-function togglePlayback() {
+function togglePlayback({videoId, start, end}) {
+    if (!ytPlayer.getVideoUrl().includes(videoId)) {
+        let startSeconds = start ? parseFloat(start) : undefined;
+        let endSeconds = end ? parseFloat(end) : undefined;
+
+        ytPlayer.loadVideoById({videoId, startSeconds, endSeconds})
+    }
+
     if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
         ytPlayer.pauseVideo();
     } else {
         ytPlayer.playVideo();
     }
 }
-function onPlayerReady() {
+function cueVideoFromDataset() {
     let {videoId, start, end} = document.getElementById("youtube-player-element").dataset;
+    if (!videoId)
+        return;
     let startSeconds = start ? parseFloat(start) : undefined;
     let endSeconds = end ? parseFloat(end) : undefined;
 
@@ -150,7 +147,7 @@ function onPlayerStateChange({data}) {
             let cur = timeConvert( ytPlayer.getCurrentTime() );
             let len = timeConvert( ytPlayer.getDuration() );
             window.opener.postMessage(
-                {type: "set-timer", text: `${cur} / ${len}`}, "*"
+                {type: "set-time-display", text: `${cur} / ${len}`}, "*"
             );
         }, 1000)
     } else if (ytPlayingInterval) {
@@ -158,14 +155,26 @@ function onPlayerStateChange({data}) {
     }
 }
 
+window.addEventListener("load", () => {
+    ytPlayer = new YT.Player("youtube-player-element", {
+        height: window.innerHeight.toString(),
+        width: window.innerWidth.toString(),
+        events: {
+            'onReady': () => {
+                ytPlayerReady = true;
+                cueVideoFromDataset();
+            },
+            'onStateChange': onPlayerStateChange
+        },
+    });
+})
+
 window.addEventListener("message", e => {
     switch(e.data.type) {
         case "change-slide":
             return onChangeSlide(e.data)
         case "blank":
-            return onBlank()
-        case "unblank":
-            return onUnblank()
+            return onToggleBlank()
         case "scroll":
             return onScroll(e.data)
         case "fullscreen":
@@ -175,7 +184,7 @@ window.addEventListener("message", e => {
         case "show":
             return onShow()
         case "togglePlayback":
-            return togglePlayback()
+            return togglePlayback(e.data)
         case "stopPlayback":
             return ytPlayer.stopVideo()
     }
