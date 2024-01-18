@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<htmL>
+<head>
+    <title>Church Presenter | Settings</title>
+    <script>
+        let DEFAULTS = {
+            "lang": "en",
+        }
+
+        window.addEventListener("message", e => {
+            let settings = document.getElementById("settings");
+            for (let row of settings.children) {
+                let key = row.dataset.key;
+                let val = e.data[key] || DEFAULTS[key];
+                row.children[1].value = val;
+            }
+        })
+
+        function handleClose(save) {
+            if (save) {
+                let dict = {};
+                let settings = document.getElementById("settings");
+                for (let row of settings.children) {
+                    let key = row.dataset.key;
+                    let val = row.children[1].value;
+                    dict[key] = val;
+                }
+                window.opener.postMessage(
+                    {type: "save-settings", settings: dict}, "*"
+                )
+            }
+            window.close();
+        }
+    </script>
+    <link href="../common.css" rel="stylesheet" />
+    <style>
+        body > *, div.settings > *, .button {
+            margin: 10px 0px;
+        }
+        div.settings {
+            height: 300px;
+        }
+        div.settings div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <h1>Settings</h1>
+    <div class="settings" id="settings">
+        <div data-key="lang">
+            <h4>Language:</h4>
+            <select>
+                <option value="en">English</option>
+                <option value="zh_cn">简体中文</option>
+            </select>
+        </div>
+    </div>
+    <div class="buttons">
+        <div class="button text-button primary" onclick="handleClose(true)">
+            Save & Close
+        </div>
+        <div class="button text-button secondary" onclick="handleClose(false)">
+            Close
+        </div>
+    </div>
+</body>
+</htmL>

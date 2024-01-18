@@ -127,18 +127,22 @@
             </div>
             <div
                 id="remote-control-btn" class="button icon-button"
-                onclick="remoteQrOpen()"
+                onclick="openRemoteQr()"
             >
                 <img src="icons/remote-control.svg">
+                <div id="ws-connection-dot"></div>
             </div>
-            <div id="settings-btn" class="button icon-button">
+            <div
+                id="settings-btn" class="button icon-button"
+                onclick="openSettings()"
+            >
                 <img src="icons/settings.svg">
             </div>
         </div>
     </div>
 </div>
 
-<p class="version-info">Church Presenter v0.7.0 (11 Jan 2024) © Sunny Yan 2024</p>
+<p class="version-info">Church Presenter v0.7.1 (19 Jan 2024) © Sunny Yan 2024</p>
 
 </body>
 </html>

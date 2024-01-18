@@ -9,8 +9,10 @@ let curSlideObj = {
 let curSubslideIdx = 0;
 let selectedSlide = null;
 let playlist = {};
-let ws;
+let ws = null;
 let nextSlideId = 0;
+
+let settings = JSON.parse(localStorage.getItem("settings")) || {};
 
 let playlistElement, slideSample;
 
@@ -723,6 +725,14 @@ function handlePastePlaylist(e) {
     openPlaylist(file);
 }
 
+function saveSettings(data) {
+    let newSettings = data.settings;
+    localStorage.setItem("settings", JSON.stringify(newSettings));
+    settings = newSettings;
+
+    refreshTranslations();
+}
+
 window.addEventListener("message", e => {
     switch(e.data.type) {
         case "edit-slide":
@@ -734,17 +744,15 @@ window.addEventListener("message", e => {
         case "set-time-display":
             setTimeDisplay(e.data);
             break;
+        case "save-settings":
+            saveSettings(e.data);
+            break;
     }
 })
 
 const TEXT_NODE_TYPES = ["H1", "H2", "H3", "H4", "H5", "H6", "P"]
-async function refreshTranslations(lang) {
-    if (lang) {
-        localStorage.setItem("lang", lang);
-    } else {
-        lang = localStorage.getItem("lang") || "en";
-        // document.getElementById("lang-selector").value = lang;
-    }
+async function refreshTranslations() {
+    let lang = settings.lang || "en";
     let resp = await fetch(`./translations/${lang}.csv`);
     if (resp.ok) {
         let text = (await resp.text()).trim();
@@ -761,7 +769,7 @@ async function refreshTranslations(lang) {
                 else
                     e.title = string;
             } catch {
-                // console.error(`Error setting ${id}`);
+                console.error(`Error setting ${id}`);
             }
         }
     }
@@ -782,8 +790,8 @@ function wsConnect() {
     let { hostname, port } = window.location;
     ws = new WebSocket(`ws://${hostname}:${port}/ws/presenter`);
     ws.addEventListener("open", e => {
-        let p = document.getElementById("server-connect-status");
-        p.innerText = "Connected";
+        let dot = document.getElementById("ws-connection-dot");
+        dot.dataset.status = "connected";
     });
     ws.addEventListener("message", e => {
         let {origin, message} = JSON.parse(e.data);
@@ -794,11 +802,22 @@ function wsConnect() {
         }
     });
     ws.addEventListener("close", e => {
-        let p = document.getElementById("server-connect-status");
-        p.innerText = "Connection lost";
+        let dot = document.getElementById("ws-connection-dot");
+        dot.dataset.status = "disconnected";
     })
 }
 
-function remoteQrOpen() {
+function openRemoteQr() {
+    if (!ws)
+        wsConnect();
     window.open("dialogs/remote-qr.html", "remote-qr", "width=500,height=500")
+}
+
+function openSettings() {
+    let settingsWindow = window.open(
+        "dialogs/settings.html", "settings", "width=500,height=500"
+    );
+    setTimeout(
+        () => settingsWindow.postMessage(settings, "*"), 1000
+    );
 }

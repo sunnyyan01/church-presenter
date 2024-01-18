@@ -4,8 +4,8 @@ function wsConnect() {
     let { hostname, port } = window.location;
     ws = new WebSocket(`ws://${hostname}:${port}/ws/remote`);
     ws.addEventListener("open", e => {
-        let p = document.getElementById("server-connect-status");
-        p.innerText = "Connected";
+        let dot = document.getElementById("ws-connection-dot");
+        dot.dataset.status = "connected";
     });
     ws.addEventListener("message", e => {
         let {origin, message} = JSON.parse(e.data);
@@ -14,17 +14,19 @@ function wsConnect() {
         }
     });
     ws.addEventListener("close", e => {
-        let p = document.getElementById("server-connect-status");
-        p.innerText = "Connection lost";
+        let dot = document.getElementById("ws-connection-dot");
+        dot.dataset.status = "disconnected";
     })
 }
 
 function wsSend(message) {
-    ws.send(JSON.stringify({
-        origin: "remote",
-        dest: "presenter",
-        message,
-    }))
+    if (ws) {
+        ws.send(JSON.stringify({
+            origin: "remote",
+            dest: "presenter",
+            message,
+        }));
+    }
 }
 
 function sendKey(key) {

@@ -9,31 +9,30 @@
 </head>
 
 <body>
-    <div class="section" style="height: 20%; width: 100%">
-        <button onclick="wsConnect()">Connect to server</button>
-        <p id="server-connect-status"></p>
+    <div
+        id="ws-connect-btn" class="button icon-button"
+        onclick="wsConnect()"
+    >
+        <img src="icons/connect.svg">
+        <div id="ws-connection-dot" data-status="connected"></div>
     </div>
-    <div class="section" style="width: 100%">
-        <button onclick="sendKey('CArrowUp')">
-            Prev Slide ↑
-        </button>
-        <button onclick="sendKey('ArrowUp')">
-            Prev Subslide ↑
-        </button>
-        <button onclick="sendKey('ArrowDown')">
-            Next Subslide ↓
-        </button>
-        <button onclick="sendKey('CArrowDown')">
-            Next Slide ↓
-        </button>
+    <div
+        id="prev-slide-btn" class="button icon-button"
+        onclick="sendKey('ArrowUp')"
+    >
+        <img src="icons/up-arrow.svg">
     </div>
-    <div class="section" style="width: 100%">
-        <button onclick="sendKey('SB')">
-            Blank
-        </button>
-        <button onclick="sendKey('b')">
-            Unblank
-        </button>
+    <div
+        id="next-slide-btn" class="button icon-button"
+        onclick="sendKey('ArrowDown')"
+    >
+        <img src="icons/down-arrow.svg">
+    </div>
+    <div
+        id="blank-btn" class="button icon-button"
+        onclick="sendKey('b')"
+    >
+        <img src="icons/black-screen.svg">
     </div>
 </body>
 
