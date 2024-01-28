@@ -3,43 +3,22 @@
     <head>
         <title>Church Presenter | Paste Playlist</title>
         <script src="paste-playlist.js" charset="UTF-8"></script>
-        <style>
-            body {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 10px;
-            }
-            .tools {
-                display: flex;
-                flex-direction: row;
-                margin: 10px 0px;
-            }
-            .tools button {
-                width: 100px;
-            }
-            .submit-btn {
-                width: 100%;
-            }
-            button {
-                border-radius: 20px;
-                min-height: 30px;
-            }
-        </style>
+        <link href="paste-playlist.css" rel="stylesheet" />
         <link href="../common.css" rel="stylesheet" />
     </head>
     <body>
         <textarea id="editor" cols="80" rows="30"></textarea>
+        <p id="error-disp"></p>
         <div class="tools">
-            <button onclick="fixSymbols()">
+            <div class="button text-button secondary" onclick="fixSymbols()">
                 Fix Symbols
-            </button>
-            <button onclick="autoBible()">
+            </div>
+            <div class="button text-button secondary" onclick="autoBible()">
                 Auto Bible
-            </button>
+            </div>
         </div>
-        <button class="submit-btn" onclick="submit()">
+        <div class="button text-button primary submit-btn" onclick="submit()">
             Done
-        </button>
+        </div>
     </body>
 </html>

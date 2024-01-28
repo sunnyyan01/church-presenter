@@ -1,5 +1,6 @@
 import express from 'express';
 import { exec } from 'child_process';
+import { platform } from 'os';
 import { WebSocketServer } from 'ws';
 import { bibleLookup } from "./server/bible.js";
 import { remoteQr } from "./server/remote.js"
@@ -20,8 +21,12 @@ app.get('/api/remote-qr', remoteQr);
 const server = app.listen(app.port, () => {
     console.log("Ready!")
     console.log(`Opening http://localhost:${app.port}/presenter.html`);
-    exec(`start http://localhost:${app.port}/presenter.html`,
-        err => { if (err) throw err }
+    const openCmd = platform() == "win32" ? "start" : "xdg-open";
+    exec(`${openCmd} http://localhost:${app.port}/presenter.html`,
+        err => {
+            if (err)
+                console.log("Failed to automatically open. Please open the above URL in your browser of choice.")
+        }
     );
 });
 
