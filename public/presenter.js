@@ -785,6 +785,23 @@ async function refreshTranslations() {
     }
 }
 
+async function checkVersion() {
+    let resp = await fetch("/api/update/check");
+    if (!resp.ok)
+        throw Error();
+    let {curVersion, latestVersion} = await resp.json();
+    let formattedDate = new Date(curVersion.date).toLocaleDateString(
+        undefined, {day: "numeric", month: "short", "year": "numeric"}
+    );
+    let curYear = new Date().getFullYear();
+    let versionStr = `Church Presenter ${curVersion.version} (${formattedDate}) © Sunny Yan ${curYear}`;
+    document.getElementById("version-info").textContent = versionStr;
+
+    if (curVersion.version !== latestVersion.version)
+        openUpdater();
+}
+const openUpdater = e => window.open("dialogs/updater.html", "updater", "width=500,height=500")
+
 window.addEventListener("load", e => {
     playlistElement = document.getElementById("slides");
     slideSample = document.getElementById("slide-sample");
@@ -794,6 +811,8 @@ window.addEventListener("load", e => {
     timerElement = document.getElementById("timer");
 
     refreshTranslations();
+
+    checkVersion();
 });
 
 function wsConnect() {
