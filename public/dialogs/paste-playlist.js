@@ -52,6 +52,18 @@ function submit() {
     window.opener.postMessage(
         {type: "paste-playlist", playlist: editor.value}, "*"
     )
-
-    window.close();
 }
+
+function handleError({error}) {
+    let errorDisp = document.getElementById("error-disp");
+    errorDisp.textContent = `Error parsing playlist: ${error}`;
+}
+
+const MSG_HANDLERS = {
+    "paste-success": () => window.close(),
+    "paste-error": handleError,
+};
+window.addEventListener("message", e => {
+    let {data} = e;
+    MSG_HANDLERS[data.type](data);
+})

@@ -1,0 +1,6 @@
+p#update-detail {
+    white-space: pre;
+}
+p#update-detail::first-line {
+    font-weight: bold;
+}

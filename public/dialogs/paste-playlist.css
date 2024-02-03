@@ -1,0 +1,38 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px;
+}
+body > * {
+    margin: 5px 0px;
+}
+
+p#error-disp {
+    background-color: rgba(255, 0, 0, 0.5);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+p#error-disp:empty {
+    display: none;
+}
+p#error-disp::before {
+    content: "❌ ";
+}
+
+.tools {
+    display: flex;
+    flex-direction: row;
+    margin: 10px 0px;
+}
+.tools .button {
+    margin: 0px 5px;
+}
+.tools .button:first-child {
+    margin-left: 0px;
+}
+
+.submit-btn {
+    display: block;
+}

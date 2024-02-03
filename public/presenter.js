@@ -441,6 +441,14 @@ async function openPlaylist(file) {
         id = nextSlideId++;
         playlist[id] = {id, idx: id, ...item};
     }
+    const limitArgs = (args, lim) => {
+        if (args.length <= lim)
+            return args;
+
+        let newArgs = args.slice(0, lim - 1);
+        newArgs.push( args.slice(lim - 1).join(",") );
+        return newArgs;
+    }
 
     let text = await file.text();
     let newline = text.includes("\r") ? "\r\n" : "\n";
@@ -450,7 +458,7 @@ async function openPlaylist(file) {
         let [template, ...args] = lines[i].split(",")
         switch (template) {
             case "0": {
-                let [year, month, day] = args
+                let [year, month, day] = limitArgs(args, 3);
                 push({
                     template: "welcome",
                     year, month, day,
@@ -459,7 +467,7 @@ async function openPlaylist(file) {
                 break;
             }
             case "1": {
-                let [title, location] = args
+                let [title, location] = limitArgs(args, 2);
                 let subslides = ["<Title Subslide>"]
                 let subslide = ""
                 do {
@@ -477,7 +485,7 @@ async function openPlaylist(file) {
                 break;
             }
             case "2": {
-                let [title, name] = args
+                let [title, name] = limitArgs(args, 2);
                 let subslides = ["<Title Subslide>"]
                 let subslide = ""
                 do {
@@ -495,7 +503,7 @@ async function openPlaylist(file) {
                 break;
             }
             case "3": {
-                let [title, subtitle] = args
+                let [title, subtitle] = limitArgs(args, 2);
                 push({
                     template: "title",
                     title, subtitle,
@@ -504,7 +512,7 @@ async function openPlaylist(file) {
                 break;
             }
             case "4": {
-                let [source] = args
+                let [source] = limitArgs(args, 1);
                 push({
                     template: "image",
                     source,
@@ -513,7 +521,7 @@ async function openPlaylist(file) {
                 break;
             }
             case "5": {
-                let [videoId, start, end] = args
+                let [videoId, start, end] = limitArgs(args, 3);
                 push({
                     template: "youtube",
                     videoId, start, end, preview: videoId,
@@ -521,7 +529,7 @@ async function openPlaylist(file) {
                 break;
             }
             case "6": {
-                let [url] = args;
+                let [url] = limitArgs(args, 1);;
                 push({
                     template: "pdf",
                     url, numSubslides: Infinity, preview: url
@@ -719,10 +727,12 @@ function handleEditSlideMsg(data) {
     editSlideInDOM(playlist[id]);
 }
 
-function handlePastePlaylist(e) {
-    let {playlist} = e;
+function handlePastePlaylist(data, source) {
+    let {playlist} = data;
     let file = new File([playlist], "playlist.txt");
-    openPlaylist(file);
+    openPlaylist(file)
+        .catch(error => source.postMessage({type: "paste-error", error}))
+        .then(() => source.postMessage({type: "paste-success"}));
 }
 
 function saveSettings(data) {
@@ -739,7 +749,7 @@ window.addEventListener("message", e => {
             handleEditSlideMsg(e.data);
             break;
         case "paste-playlist":
-            handlePastePlaylist(e.data);
+            handlePastePlaylist(e.data, e.source);
             break;
         case "set-time-display":
             setTimeDisplay(e.data);
@@ -775,6 +785,23 @@ async function refreshTranslations() {
     }
 }
 
+async function checkVersion() {
+    let resp = await fetch("/api/update/check");
+    if (!resp.ok)
+        throw Error();
+    let {curVersion, latestVersion} = await resp.json();
+    let formattedDate = new Date(curVersion.date).toLocaleDateString(
+        undefined, {day: "numeric", month: "short", "year": "numeric"}
+    );
+    let curYear = new Date().getFullYear();
+    let versionStr = `Church Presenter ${curVersion.version} (${formattedDate}) © Sunny Yan ${curYear}`;
+    document.getElementById("version-info").textContent = versionStr;
+
+    if (curVersion.version !== latestVersion.version)
+        openUpdater();
+}
+const openUpdater = e => window.open("dialogs/updater.html", "updater", "width=500,height=500")
+
 window.addEventListener("load", e => {
     playlistElement = document.getElementById("slides");
     slideSample = document.getElementById("slide-sample");
@@ -784,6 +811,8 @@ window.addEventListener("load", e => {
     timerElement = document.getElementById("timer");
 
     refreshTranslations();
+
+    checkVersion();
 });
 
 function wsConnect() {
