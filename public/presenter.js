@@ -790,10 +790,17 @@ async function checkVersion() {
     if (!resp.ok)
         throw Error();
     let {curVersion, latestVersion} = await resp.json();
+    let curYear = new Date().getFullYear();
+
+    if (!curVersion.version || !curVersion.date) {
+        let versionStr = `Church Presenter © Sunny Yan ${curYear}`;
+        document.getElementById("version-info").textContent = versionStr;
+        return;
+    }
+
     let formattedDate = new Date(curVersion.date).toLocaleDateString(
         undefined, {day: "numeric", month: "short", "year": "numeric"}
     );
-    let curYear = new Date().getFullYear();
     let versionStr = `Church Presenter ${curVersion.version} (${formattedDate}) © Sunny Yan ${curYear}`;
     document.getElementById("version-info").textContent = versionStr;
 
@@ -801,6 +808,12 @@ async function checkVersion() {
         openUpdater();
 }
 const openUpdater = e => window.open("dialogs/updater.html", "updater", "width=500,height=500")
+
+function checkServer() {
+    fetch("/api")
+        .catch(err => document.body.dataset.serverlessMode = true)
+        .then(res => document.body.dataset.serverlessMode = !res.ok);
+}
 
 window.addEventListener("load", e => {
     playlistElement = document.getElementById("slides");
@@ -813,6 +826,7 @@ window.addEventListener("load", e => {
     refreshTranslations();
 
     checkVersion();
+    checkServer();
 });
 
 function wsConnect() {

@@ -10,7 +10,10 @@ async function versionCheck() {
     let updateDetail = document.getElementById("update-detail");
     let updateButton = document.getElementById("update-button");
 
-    if (curVersion.version === latestVersion.version) {
+    if (!curVersion.version) {
+        updateMessage.textContent = "There is a minor problem with your install, you can update to fix this";
+        updateButton.classList.remove("hidden");
+    } else if (curVersion.version === latestVersion.version) {
         updateMessage.textContent = "The latest version is already installed";
     } else {
         updateMessage.textContent = "An update is available";

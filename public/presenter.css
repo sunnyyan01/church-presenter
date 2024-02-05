@@ -171,3 +171,19 @@ p.subslide-preview.selected {
     background-color: red;
     animation: blinker 2s linear 10;
 }
+
+div.about-links {
+    display: flex;
+    flex-direction: row;
+}
+div.about-links > * {
+    padding: 0px 5px;
+    border-left: 1px solid black;
+}
+div.about-links > *:first-child {
+    border: none;
+}
+
+body[data-serverless-mode=true] :is(#remote-control-btn,a.updater-link) {
+    display: none;
+}

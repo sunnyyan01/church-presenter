@@ -139,7 +139,7 @@ function cueVideoFromDataset() {
 const timeConvert = sec => (
     Math.trunc(sec / 60) +
     ":" +
-    (sec % 60).toFixed(0).padStart(2, "0")
+    Math.trunc(sec % 60).padStart(2, "0")
 );
 function onPlayerStateChange({data}) {
     if (data === YT.PlayerState.PLAYING) {

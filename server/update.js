@@ -31,8 +31,12 @@ const execAsync = (cmd) => new Promise((resolve,reject) => {
 let curVersionCache = null;
 async function getCurrentVersion() {
     if (!curVersionCache) {
-        let contents = await readFile("version.json");
-        curVersionCache = JSON.parse(contents);
+        try {
+            let contents = await readFile("version.json");
+            curVersionCache = JSON.parse(contents);
+        } catch {
+            curVersionCache = {};
+        }
     }
     return curVersionCache;
 }
