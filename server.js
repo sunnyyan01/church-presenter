@@ -12,6 +12,7 @@ app.port = 3000;
 app.use(express.static('public'));
 app.use('/version.json', express.static('version.json'));
 
+app.get('/api', (req, res) => res.send("Church Presenter API"));
 app.get('/api/bible-lookup', bibleLookup);
 app.get('/api/remote-qr', remoteQr);
 app.get('/api/update/check', checkUpdate);
