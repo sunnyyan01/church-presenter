@@ -175,6 +175,7 @@ p.subslide-preview.selected {
 div.about-links {
     display: flex;
     flex-direction: row;
+    height: fit-content;
 }
 div.about-links > * {
     padding: 0px 5px;
