@@ -9,6 +9,7 @@ async function versionCheck() {
     let updatePublishDate = document.getElementById("update-publish-date");
     let updateDetail = document.getElementById("update-detail");
     let updateButton = document.getElementById("update-button");
+    let updateProgress = document.getElementById("update-progress");
 
     if (!curVersion.version) {
         updateMessage.textContent = "There is a minor problem with your install, you can update to fix this";
@@ -19,12 +20,27 @@ async function versionCheck() {
         updateMessage.textContent = "An update is available";
         updateButton.classList.remove("hidden");
     }
+
     updateTitle.textContent = latestVersion.version;
+
     let formattedDate = new Date(curVersion.date).toLocaleDateString(
         undefined, {day: "numeric", month: "short", "year": "numeric"}
     );
     updatePublishDate.textContent = `Published ${formattedDate}`
+
     updateDetail.textContent = latestVersion.changes;
+
+    updateButton.addEventListener("click", async e => {
+        e.target.disabled = true;
+        updateProgress.textContent = "Downloading update. You may close this window."
+        let resp = await fetch("/api/update/download");
+        if (resp.ok) {
+            updateProgress.textContent = "Download complete. The update will be installed next time Church Presenter starts. You may close this window."
+        } else {
+            updateProgress.textContent = `Download failed: ${await resp.text()}`;
+            e.target.disabled = false;
+        }
+    })
 }
 
 window.addEventListener("load", () => {

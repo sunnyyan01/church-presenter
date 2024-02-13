@@ -38,11 +38,19 @@ h1,h2,h3,h4,h5,h6,p {
     text-transform: uppercase;
 }
 .text-button.primary {
-    background-color: blue;
+    background-color: #00FC;
     color: white;
 }
+.text-button.primary:hover {
+    background-color: #00F;
+}
 .text-button.secondary {
-    border: 1px solid blue;
+    border: 1px solid #00FC;
+    color: #00FC;
+}
+.text-button.text-button.secondary:hover {
+    border: 1px solid #00F;
+    color: #00F;
 }
 
 .hidden {

@@ -660,6 +660,8 @@ function setTimeDisplay({text}) {
 }
 
 function resetPlayback(e) {
+    e.stopPropagation();
+
     slideshowWindow.postMessage({type: "stopPlayback"});
     curPlaybackControls.children[2].textContent = "";
 }

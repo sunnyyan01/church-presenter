@@ -24,7 +24,7 @@ const execAsync = (cmd) => new Promise((resolve,reject) => {
         if (err)
             reject(err)
         else
-            resolve(stdout, stderr);
+            resolve([stdout, stderr]);
     })
 })
 
@@ -101,12 +101,12 @@ export async function downloadUpdate(req, res) {
     const versionTask = async () => {
         let latestVer = await getLatestVersion();
         let cmd = `echo "${JSON.stringify(latestVer)}" > "${tmp}church-presenter-update-temp.json"`;
-        await execAsync(cmd);
+        return await execAsync(cmd);
     }
 
     let cmd = `curl -L "https://github.com/sunnyyan01/church-presenter/archive/refs/heads/main.tar.gz" > "${tmp}church-presenter-update-temp.tar.gz"`;
     const downloadTask = () => execAsync(cmd);
 
-    await Promise.all(versionTask, downloadTask);
+    await Promise.all([versionTask(), downloadTask()]);
     res.status(204).send();
 }
