@@ -36,10 +36,8 @@
                     <option value="bible">Bible</option>
                     <option value="song">Song</option>
                     <option value="title">Title</option>
-                    <option value="subtitle">Title + Subtitle</option>
-                    <option value="image">Image</option>
+                    <option value="embed">Embed</option>
                     <option value="youtube">Youtube</option>
-                    <option value="pdf">PDF</option>
                 </select>
             </td>
         </tr>
@@ -117,11 +115,22 @@
             <th>Subslides</th>
             <td>
                 <textarea cols="80" rows="15"></textarea>
-                <button class="small" onclick="autoSlides(true)">Auto</button>
+                <button class="small" onclick="autoSubslides(true)">Auto</button>
                 <div id="autoSubslides-loading" class="loading-backdrop hidden">
                     <div class="loading-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
                     <p>Please wait...</p>
                 </div>
+            </td>
+        </tr>
+        <tr id="slide-data-table-row--subtitle">
+            <th>Subtitles</th>
+            <td>
+                <select id="subtitle-selector">
+                    <option value="">None</option>
+                    <option value="en">English</option>
+                    <option value="zh">Chinese</option>
+                    <option disabled>Use JSON editor for other languages</option>
+                </select>
             </td>
         </tr>
         <tr id="slide-data-table-row--preview">

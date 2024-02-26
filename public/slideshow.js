@@ -10,11 +10,33 @@ function youtubeSlideHandler() {
     if (ytPlayerReady)
         cueVideoFromDataset();
 }
-async function pdfSlideHandler() {
-    let canvas = document.getElementById("pdf-canvas-element");
+async function embedSlideHandler() {
+    const div = document.getElementById("embed-embed-element");
+
+    let { url } = div.dataset;
+
+    let resp = await fetch(url, {method: "HEAD"});
+    let mimeType = resp.headers.get("Content-Type");
+    if (mimeType === "application/pdf") {
+        let canvas = document.createElement("canvas");
+        pdfSlideHandler(canvas, div.dataset);
+        div.replaceChildren(canvas);
+    } else if (mimeType.startsWith("image")) {
+        let img = document.createElement("img");
+        img.src = url;
+        div.replaceChildren(img);
+    } else if (mimeType.startsWith("video")) {
+        let video = document.createElement("video");
+        video.src = url;
+        div.replaceChildren(video);
+    }
+}
+async function pdfSlideHandler(canvas, dataset) {
+    let {url, subslideIdx, slideId} = dataset;
+    subslideIdx = parseInt(subslideIdx);
+    console.log(subslideIdx);
+
     let ctx = canvas.getContext("2d");
-    let {url, pageNum, slideId} = canvas.dataset;
-    pageNum = parseInt(pageNum);
 
     if (pdfCur.url !== url) {
         pdfObj = await pdfjsLib.getDocument(url).promise;
@@ -26,8 +48,8 @@ async function pdfSlideHandler() {
         })
     }
 
-    if (pdfCur.pageNum !== pageNum) {
-        let page = await pdfObj.getPage(pageNum);
+    if (pdfCur.pageNum !== subslideIdx) {
+        let page = await pdfObj.getPage(subslideIdx + 1);
         let viewport = page.getViewport({scale: 2});
 
         canvas.height = viewport.height;
@@ -81,8 +103,8 @@ function onChangeSlide({slide}) {
 
     if (slide.template === "youtube")
         youtubeSlideHandler();
-    else if (slide.template === "pdf")
-        pdfSlideHandler();
+    else if (slide.template === "embed")
+        embedSlideHandler();
 
     selTemplate.classList.add("showing");
     window.curTemplate = slide.template;
@@ -155,6 +177,17 @@ function onPlayerStateChange({data}) {
     }
 }
 
+function onPlayerApiChange() {
+    let {subtitle} = document.getElementById("youtube-player-element").dataset;
+    if (!subtitle || !ytPlayer.getOptions('captions').includes("tracklist"))
+        return;
+    let track = ytPlayer.getOption("captions", "tracklist").find(
+        t => t.languageCode.includes(subtitle)
+    );
+    ytPlayer.setOption("captions", "track", track);
+    ytPlayer.setOption("captions", "fontSize", 3);
+}
+
 window.addEventListener("load", () => {
     ytPlayer = new YT.Player("youtube-player-element", {
         height: window.innerHeight.toString(),
@@ -164,7 +197,8 @@ window.addEventListener("load", () => {
                 ytPlayerReady = true;
                 cueVideoFromDataset();
             },
-            'onStateChange': onPlayerStateChange
+            'onStateChange': onPlayerStateChange,
+            'onApiChange': onPlayerApiChange,
         },
     });
 })

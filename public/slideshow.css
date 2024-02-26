@@ -15,19 +15,19 @@ body {
 }
 
 h1 {
-    font-size: 15vh;
+    font-size: 13vh;
 }
 
 h2 {
-    font-size: 14vh;
-}
-
-h3 {
     font-size: 12vh;
 }
 
-p {
+h3 {
     font-size: 10vh;
+}
+
+p {
+    font-size: 8vh;
 }
 
 h1,h2,h3,h4,h5,h6,p {
@@ -87,9 +87,6 @@ h1,h2,h3,h4,h5,h6,p {
     justify-content: space-between;
     align-items: center;
 }
-.top-bar h2::first-line {
-    font-size: unset;
-}
 .top-bar h2 {
     margin-left: 10%;
 }
@@ -133,18 +130,15 @@ h1,h2,h3,h4,h5,h6,p {
     z-index: 2;
 }
 
-#image-img-element {
-    z-index: 2;
-}
-
-.pdf-template {
+.embed-template {
     padding: 0px;
 }
-#pdf-canvas-element {
+.embed-embed-element > * {
     position: absolute;
     width: 100vw;
     height: 100vh;
     z-index: 2;
+    object-fit: contain;
 }
 
 .scrollable {

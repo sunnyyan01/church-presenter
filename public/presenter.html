@@ -33,7 +33,7 @@
         </div>
         <input
             id="playlist-open-picker" class="hidden"
-            type="file" accept=".txt"
+            type="file" accept=".txt,.json"
             onchange="openPlaylist(this.files[0])"
         />
         <p id="playlist-setup-text2"></p>
@@ -58,24 +58,24 @@
         <p class="time-display"></p>
     </div>
     <div id="slide-context-menu" class="context-menu hidden">
-        <button data-action="edit">
+        <div class="button text-button secondary" data-action="edit">
             Edit
-        </button>
-        <button data-action="move-up">
+        </div>
+        <div class="button text-button secondary" data-action="move-up">
             Move ↑
-        </button>
-        <button data-action="move-down">
+        </div>
+        <div class="button text-button secondary" data-action="move-down">
             Move ↓
-        </button>
-        <button data-action="insert-above">
+        </div>
+        <div class="button text-button secondary" data-action="insert-above">
             Insert ↑
-        </button>
-        <button data-action="insert-below">
+        </div>
+        <div class="button text-button secondary" data-action="insert-below">
             Insert ↓
-        </button>
-        <button data-action="delete">
+        </div>
+        <div class="button text-button secondary" data-action="delete">
             Delete
-        </button>
+        </div>
     </div>
     <div id="slides" class="slides">
     </div>

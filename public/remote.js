@@ -32,3 +32,5 @@ function wsSend(message) {
 function sendKey(key) {
     wsSend({type: "shortkey", key})
 }
+
+window.addEventListener("load", wsConnect);

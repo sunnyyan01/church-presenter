@@ -73,34 +73,23 @@ function slideObjToSlide(slide, subslideIdx = 0) {
                 fields: { title },
             }
         }
-        case "image": {
-            let {source} = slide
+        case "embed": {
+            let {url} = slide
             return {
-                template: "image",
+                template: "embed",
                 elements: [{
-                    id: "img",
-                    attributes: {
-                        src: source,
+                    id: "embed",
+                    dataset: {
+                        url, subslideIdx, slideId: slide.id,
                     }
                 }]
             }
         }
         case "youtube": {
-            let {videoId, start, end} = slide;
+            let {videoId, start, end, subtitle} = slide;
             return {
                 template: "youtube",
-                elements: [{id: "player", dataset: {videoId, start, end}}]
-            }
-        }
-        case "pdf": {
-            let {url} = slide;
-            return {
-                template: "pdf",
-                elements: [{id: "canvas", dataset: {
-                    url,
-                    pageNum: subslideIdx + 1,
-                    slideId: slide.id,
-                }}]
+                elements: [{id: "player", dataset: {videoId, start, end, subtitle}}]
             }
         }
     }
@@ -147,7 +136,7 @@ function openSlideContextMenu(e) {
                 }
                 break;
             case "delete":
-                button.click = () => {
+                button.onclick = () => {
                     moveSlide(id, 0);
                     closeSlideContextMenu();
                 }
@@ -431,113 +420,84 @@ function renderPreview(...fields) {
     return nonEmptyFields.join(" - ");
 }
 
+const TEMPLATES = [
+    ["welcome", ["year", "month", "day"]],
+    ["bible", ["title", "location"]],
+    ["song", ["title", "name"]],
+    ["title", ["title", "subtitle"]],
+    ["embed", ["url"]],
+    ["youtube", ["videoId"]],
+]
+const SUBSLIDE_TEMPLATES_A = ["bible", "song"];
+const SUBSLIDE_TEMPLATES_B = ["embed"];
+function parseTextPlaylist(text) {
+    const push = item => {
+        id = nextSlideId++;
+        playlist[id] = {id, idx: id, ...item};
+    }
+
+    let newline = text.includes("\r") ? "\r\n" : "\n";
+    let lines = text.trim().split(newline);
+    let i = 0;
+    let curSlide = {};
+    while (i < lines.length) {
+        let [templateNum, ...args] = lines[i].match(/(\\.|[^,])+/g);
+
+        let [templateName, positionalArgs] = TEMPLATES[templateNum];
+        let positionalsMatched = 0;
+
+        curSlide.template = templateName;
+
+        for (let arg of args) {
+            if (arg.includes("=")) {
+                let [key, val] = arg.split("=");
+                curSlide[key] = val;
+            } else {
+                let key = positionalArgs[positionalsMatched++];
+                curSlide[key] = arg;
+            }
+        }
+
+        if (SUBSLIDE_TEMPLATES_A.includes(templateName)) {
+            curSlide.subslides = ["<Title Subslide>"];
+            let subslide = "";
+            do {
+                subslide += lines[++i] + "\n";
+                if ( lines[i].match(/(N|E)$/) ) {
+                    curSlide.subslides.push(subslide.slice(0, -2)); // Remove N|E and \n
+                    subslide = "";
+                }
+            } while (!lines[i].endsWith("E"));
+        } else if (SUBSLIDE_TEMPLATES_B.includes(templateName)) {
+            curSlide.numSubslides = 1;
+        }
+
+        if (!curSlide.preview) {
+            curSlide.preview = positionalArgs
+                .slice(0, positionalsMatched)
+                .map(key => curSlide[key])
+                .join(" - ");
+        }
+
+        push(curSlide);
+        curSlide = {};
+
+        i++;
+    }
+}
+
 async function openPlaylist(file) {
     if (!file)
         return;
 
     closePlaylist();
-
-    const push = item => {
-        id = nextSlideId++;
-        playlist[id] = {id, idx: id, ...item};
-    }
-    const limitArgs = (args, lim) => {
-        if (args.length <= lim)
-            return args;
-
-        let newArgs = args.slice(0, lim - 1);
-        newArgs.push( args.slice(lim - 1).join(",") );
-        return newArgs;
-    }
-
-    let text = await file.text();
-    let newline = text.includes("\r") ? "\r\n" : "\n";
-    let lines = text.split(newline);
-    let i = 0
-    while (i < lines.length) {
-        let [template, ...args] = lines[i].split(",")
-        switch (template) {
-            case "0": {
-                let [year, month, day] = limitArgs(args, 3);
-                push({
-                    template: "welcome",
-                    year, month, day,
-                    preview: args.join("/"),
-                })
-                break;
-            }
-            case "1": {
-                let [title, location] = limitArgs(args, 2);
-                let subslides = ["<Title Subslide>"]
-                let subslide = ""
-                do {
-                    subslide += lines[++i] + "\n"
-                    if ( lines[i].match(/(N|E)$/) ) {
-                        subslides.push(subslide.slice(0, -2)) // Remove N|E and \n
-                        subslide = ""
-                    }
-                } while (!lines[i].endsWith("E"))
-                push({
-                    template: "bible",
-                    title, location, subslides,
-                    preview: renderPreview(title, location),
-                })
-                break;
-            }
-            case "2": {
-                let [title, name] = limitArgs(args, 2);
-                let subslides = ["<Title Subslide>"]
-                let subslide = ""
-                do {
-                    subslide += lines[++i] + "\n"
-                    if ( lines[i].match(/N|E$/) ) {
-                        subslides.push(subslide.slice(0, -2)) // Remove N|E and \n
-                        subslide = ""
-                    }
-                } while (!lines[i].endsWith("E"))
-                push({
-                    template: "song",
-                    title, name, subslides,
-                    preview: renderPreview(title, name),
-                })
-                break;
-            }
-            case "3": {
-                let [title, subtitle] = limitArgs(args, 2);
-                push({
-                    template: "title",
-                    title, subtitle,
-                    preview: renderPreview(title, subtitle),
-                })
-                break;
-            }
-            case "4": {
-                let [source] = limitArgs(args, 1);
-                push({
-                    template: "image",
-                    source,
-                    preview: source,
-                })
-                break;
-            }
-            case "5": {
-                let [videoId, start, end] = limitArgs(args, 3);
-                push({
-                    template: "youtube",
-                    videoId, start, end, preview: videoId,
-                })
-                break;
-            }
-            case "6": {
-                let [url] = limitArgs(args, 1);;
-                push({
-                    template: "pdf",
-                    url, numSubslides: Infinity, preview: url
-                });
-                break;
-            }
-        }
-        i++;
+    
+    if (file.type == "text/plain") {
+        let text = await file.text();
+        parseTextPlaylist(text);
+    } else if (file.type == "application/json") {
+        playlist = JSON.parse(await file.text());
+        nextSlideId = Math.max(Object.keys(playlist)) + 1;
     }
 
     for (let item of Object.values(playlist)) {
@@ -557,48 +517,7 @@ function pastePlaylist() {
 }
 
 function savePlaylist() {
-    let textFile = "";
-    for (let element of playlistElement.children) {
-        let slide = playlist[element.dataset.id];
-        switch (slide.template) {
-            case "welcome":
-                textFile += `0,${slide.year},${slide.month},${slide.day}\n`;
-                break;
-            case "bible":
-                textFile += `1,${slide.title},${slide.location}\n`
-                for (let [i,subslide] of Object.entries(slide.subslides)) {
-                    if (i == 0) continue;
-                    textFile += `${subslide}N\n`;
-                }
-                textFile = textFile.replace(/N\n$/, "E\n");
-                break;
-            case "song":
-                textFile += `2,${slide.title},${slide.name}\n`
-                for (let [i,subslide] of Object.entries(slide.subslides)) {
-                    if (i == 0) continue;
-                    textFile += `${subslide}N\n`;
-                }
-                textFile = textFile.replace(/N\n$/, "E\n");
-                break;
-            case "title":
-                if (slide.subtitle)
-                    textFile += `3,${slide.title},${slide.subtitle}\n`;
-                else
-                    textFile += `3,${slide.title}\n`;
-                break;
-            case "image":
-                textFile += `4,${slide.source}\n`;
-                break;
-            case "youtube":
-                let list = [5, slide.videoId, slide.start, slide.end].filter(x => x);
-                textFile += list.join(",") + "\n";
-                break;
-            case "pdf":
-                textFile += `6,${slide.url}\n`;
-                break;
-        }
-    };
-    let exportFile = new File([textFile], "playlist.txt");
+    let exportFile = new File([JSON.stringify(playlist, undefined, 2)], "playlist.json");
     let url = URL.createObjectURL(exportFile);
     let a = document.createElement("a");
     a.href = url;
@@ -666,6 +585,12 @@ function resetPlayback(e) {
     curPlaybackControls.children[2].textContent = "";
 }
 
+function clickPlaybackBtn(action) {
+    document.getElementById(`playback-controls-i${curSlideObj.idx}`)
+        .children[action === "toggle" ? 0 : 1]
+        .click();
+}
+
 // ===
 // Keyboard Shortcuts
 // ===
@@ -688,6 +613,8 @@ const KEY_MAP = {
     "j": jumpToSubslide,
     "CSArrowUp": () => moveSlide(curSlideObj.id, -1),
     "CSArrowDown": () => moveSlide(curSlideObj.id, 1),
+    "v": () => clickPlaybackBtn("toggle"),
+    "Cv": () => clickPlaybackBtn("reset"),
 }
 window.addEventListener("keydown", e => {
     let key = (
@@ -731,10 +658,11 @@ function handleEditSlideMsg(data) {
 
 function handlePastePlaylist(data, source) {
     let {playlist} = data;
-    let file = new File([playlist], "playlist.txt");
-    openPlaylist(file)
-        .catch(error => source.postMessage({type: "paste-error", error}))
-        .then(() => source.postMessage({type: "paste-success"}));
+    let file = new File([playlist], "playlist.txt", {type: "text/plain"});
+    openPlaylist(file).then(
+        () => source.postMessage({type: "paste-success"}),
+        error => source.postMessage({type: "paste-error", error})
+    );
 }
 
 function saveSettings(data) {

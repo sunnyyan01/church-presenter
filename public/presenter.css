@@ -9,17 +9,29 @@ body {
     display: flex;
     flex-direction: column;
     position: absolute;
-    border: 1px solid black;
+    border: 1px solid gray;
     border-radius: 20px;
     background-color: white;
     padding: 2px;
+    box-shadow: 1px 1px gray;
 }
-.context-menu button {
-    background-color: rgba(0,255,255,0.5);
+.context-menu .button {
     border: none;
+    border-radius: 0px;
+    height: 25px;
+    line-height: 25px;
+    padding: 5px;
 }
-.context-menu button:hover {
-    background-color: rgba(0,255,255,1);
+.context-menu .button:first-child {
+    border-radius: 20px 20px 0px 0px;
+}
+.context-menu .button:last-child {
+    border-radius: 0px 0px 20px 20px;
+}
+.context-menu .button:hover {
+    border: none;
+    background-color: blue;
+    color:white;
 }
 .context-menu button:first-child {
     border-top-left-radius: 16px;

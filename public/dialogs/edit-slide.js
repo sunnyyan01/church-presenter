@@ -12,7 +12,7 @@ function dataTableToSlide() {
                 slide[key] = valueElement.value.split(/N\s*\n/);
                 slide[key].unshift("<Title Slide>");
             } else if (key === "numSubslides") {
-                slide[key] = valueElement.value || Infinity;
+                slide[key] = valueElement.value || 1;
             } else {
                 slide[key] = valueElement.value;
             }
@@ -87,7 +87,7 @@ function switchMode(button) {
             c.classList.remove("selected");
         button.classList.add("selected");
         document.getElementById("slide-data-table").classList.add("hidden");
-        jsonEditor.value = JSON.stringify(dataTableToSlide());
+        jsonEditor.value = JSON.stringify(dataTableToSlide(), undefined, 2);
         jsonEditor.classList.remove("hidden");
     }
 
@@ -101,9 +101,8 @@ function onTemplateChange() {
         "bible": ["title", "location", "subslides"],
         "song": ["title", "name", "subslides"],
         "title": ["title", "subtitle"],
-        "image": ["source"],
-        "youtube": ["videoId","start","end"],
-        "pdf": ["url", "numSlides"],
+        "embed": ["url", "numSubslides"],
+        "youtube": ["videoId","start","end","subtitle"],
     }[changeTo] || [];
     for (let key of fieldsToEnable) {
         document.getElementById(`slide-data-table-row--${key}`)
@@ -163,14 +162,14 @@ function autoTimeConvert() {
     }
 }
 
-async function autoSlides(force = false) {
+async function autoSubslides(force = false) {
     if (getCurValue("template") != "bible")
         return;
     // If subslides are already filled, don't overwrite with all auto
     if (!force && getCurValue("subslides"))
         return;
 
-    let loadingDiv = document.getElementById("autoSlides-loading");
+    let loadingDiv = document.getElementById("autoSubslides-loading");
     loadingDiv.classList.remove("hidden");
     
     let location = getCurValue("location");
@@ -185,41 +184,21 @@ async function autoSlides(force = false) {
     loadingDiv.classList.add("hidden");
 }
 
-function renderPreview(...fields) {
-    let nonEmptyFields = fields
-        .filter(x => x)
-        .map(s => s.replaceAll("<br>", "🆕"));
-    return nonEmptyFields.join(" - ");
+const TEMPLATE_TO_ARGS = {
+    "welcome": ["year", "month", "day"],
+    "bible": ["title", "location"],
+    "song": ["title", "name"],
+    "title": ["title", "subtitle"],
+    "embed": ["url"],
+    "youtube": ["videoId"],
 }
-
 function autoPreview() {
-    let preview = "";
-    switch (getCurValue("template")) {
-        case "welcome":
-            preview = [getCurValue("year"), getCurValue("month"), getCurValue("day")].join("/");
-            break;
-        case "bible":
-            preview = renderPreview( getCurValue("title"), getCurValue("location") );
-            break;
-        case "song":
-            preview = renderPreview( getCurValue("title"), getCurValue("name") );
-            break;
-        case "title":
-            preview = renderPreview( getCurValue("title"), getCurValue("subtitle") );
-            break;
-        case "image":
-            preview = getCurValue("source");
-            break;
-        case "youtube":
-            preview = getCurValue("videoId");
-            break;
-        case "pdf":
-            preview = getCurValue("url");
-            break;
-    }
-    if (preview) {
-        setValue("preview", preview.replaceAll("<br>", "🆕"));
-    }
+    let preview = TEMPLATE_TO_ARGS[getCurValue("template")]
+        .map(getCurValue)
+        .filter(x => x)
+        .join(" - ")
+        .replaceAll("<br>", "🆕");
+    setValue("preview", preview);
 }
 
 function allAuto() {

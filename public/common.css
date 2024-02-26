@@ -48,7 +48,7 @@ h1,h2,h3,h4,h5,h6,p {
     border: 1px solid #00FC;
     color: #00FC;
 }
-.text-button.text-button.secondary:hover {
+.text-button.secondary:hover {
     border: 1px solid #00F;
     color: #00F;
 }
