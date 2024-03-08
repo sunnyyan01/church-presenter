@@ -102,7 +102,7 @@ function onTemplateChange() {
         "song": ["title", "name", "subslides"],
         "title": ["title", "subtitle"],
         "embed": ["url", "numSubslides"],
-        "youtube": ["videoId","start","end","subtitle"],
+        "youtube": ["videoId","start","end","subtitles"],
     }[changeTo] || [];
     for (let key of fieldsToEnable) {
         document.getElementById(`slide-data-table-row--${key}`)

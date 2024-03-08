@@ -178,11 +178,11 @@ function onPlayerStateChange({data}) {
 }
 
 function onPlayerApiChange() {
-    let {subtitle} = document.getElementById("youtube-player-element").dataset;
-    if (!subtitle || !ytPlayer.getOptions('captions').includes("tracklist"))
+    let {subtitles} = document.getElementById("youtube-player-element").dataset;
+    if (!subtitles || !ytPlayer.getOptions('captions').includes("tracklist"))
         return;
     let track = ytPlayer.getOption("captions", "tracklist").find(
-        t => t.languageCode.includes(subtitle)
+        t => t.languageCode.includes(subtitles)
     );
     ytPlayer.setOption("captions", "track", track);
     ytPlayer.setOption("captions", "fontSize", 3);

@@ -89,9 +89,17 @@ h1,h2,h3,h4,h5,h6,p {
 }
 .top-bar h2 {
     margin-left: 10%;
+    font-size: 8vh;
+}
+.top-bar h2::first-line {
+    font-size: 12vh;
 }
 .top-bar h3 {
     text-align: right;
+    font-size: 8vh;
+}
+.top-bar h3::first-line {
+    font-size: 10vh;
 }
 .bible-template p {
     width: 100%;

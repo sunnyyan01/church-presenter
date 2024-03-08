@@ -86,10 +86,10 @@ function slideObjToSlide(slide, subslideIdx = 0) {
             }
         }
         case "youtube": {
-            let {videoId, start, end, subtitle} = slide;
+            let {videoId, start, end, subtitles} = slide;
             return {
                 template: "youtube",
-                elements: [{id: "player", dataset: {videoId, start, end, subtitle}}]
+                elements: [{id: "player", dataset: {videoId, start, end, subtitles}}]
             }
         }
     }
@@ -202,18 +202,21 @@ function addSlideToDOM(id, idx = -1) {
 
     if (idx === -1) {
         playlistElement.appendChild(div);
-    } else if (idx === 0) {
-        playlistElement.insertAdjacentElement("afterBegin", div);
-    } else {
-        playlistElement.children[idx - 1].insertAdjacentElement("afterEnd", div);
+        return div;
     }
+
+    for (let child of playlistElement.children) {
+        if (parseInt(child.dataset.idx) > idx) {
+            child.insertAdjacentElement("beforeBegin", div);
+            return div;
+        }
+    }
+    playlistElement.appendChild(div);
 
     return div;
 }
-function editSlideInDOM(slide) {
-    let idx = slide.idx;
-    let div = playlistElement.children[idx];
-
+function editSlideInDOM(div, slide) {
+    // Array.from so deletions don't affect the loop - .children is a live view
     for (let e of Array.from(div.children)) {
         if (e.tagName == "H4") {
             e.textContent = slide.template;
@@ -501,8 +504,8 @@ async function openPlaylist(file) {
     }
 
     for (let item of Object.values(playlist)) {
-        addSlideToDOM(item.id, item.idx);
-        editSlideInDOM(item);
+        let div = addSlideToDOM(item.id, item.idx);
+        editSlideInDOM(div, item);
     }
 
     document.getElementById("save-playlist-btn").classList.remove("hidden");
@@ -653,7 +656,7 @@ function handleEditSlideMsg(data) {
         }
     }
 
-    editSlideInDOM(playlist[id]);
+    editSlideInDOM(playlistElement.children[idx], playlist[id]);
 }
 
 function handlePastePlaylist(data, source) {
