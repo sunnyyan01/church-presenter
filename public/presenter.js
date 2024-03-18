@@ -8,7 +8,7 @@ let curSlideObj = {
 };
 let curSubslideIdx = 0;
 let selectedSlide = null;
-let playlist = {};
+let playlist = null;
 let ws = null;
 let nextSlideId = 0;
 
@@ -158,16 +158,15 @@ document.addEventListener("click", closeSlideContextMenu);
 function onSlideClick(e) {
     if (selectedSlide)
         selectedSlide.classList.remove("selected");
-    if (curSlideObj.subslides)
+    if (curSlideObj.subslideType == "definite")
         document.getElementById(`subslide-preview-i${curSlideObj.id}s${curSubslideIdx}`)
             .classList.remove("selected");
-    else if (curSlideObj.numSubslides)
+    else if (curSlideObj.subslideType == "indefinite")
         document.getElementById(`subslide-count-i${curSlideObj.id}`)
             .textContent = `${curSlideObj.numSubslides} subslides`;
 
     let id = parseInt(e.currentTarget.dataset.id);
-    curSlideObj = playlist[id];
-    curSlideObj.idx = parseInt(e.currentTarget.dataset.idx);
+    curSlideObj = playlist.getSlide(id);
 
     let match = e.target.id.match(/^subslide-preview-i\d+s(\d+)$/);
     if (match) {
@@ -175,7 +174,7 @@ function onSlideClick(e) {
     } else {
         curSubslideIdx = 0;
     }
-    curSlide = slideObjToSlide( curSlideObj, curSubslideIdx );
+    curSlide = curSlideObj.getSlideshowData( curSubslideIdx );
 
     e.currentTarget.classList.add("selected");
     if (curSlideObj.subslides)
@@ -219,7 +218,7 @@ function editSlideInDOM(div, slide) {
     // Array.from so deletions don't affect the loop - .children is a live view
     for (let e of Array.from(div.children)) {
         if (e.tagName == "H4") {
-            e.textContent = slide.template;
+            e.textContent = slide.templateName;
         } else if (e.tagName == "H2") {
             e.textContent = slide.preview;
         } else {
@@ -227,7 +226,7 @@ function editSlideInDOM(div, slide) {
         }
     }
 
-    if (slide.subslides) {
+    if (slide.subslideType == "definite") {
         for (let [s, subslide] of Object.entries(slide.subslides)) {
             let p = document.createElement("p");
             p.classList.add("subslide-preview");
@@ -238,7 +237,7 @@ function editSlideInDOM(div, slide) {
             }
             div.appendChild(p);
         }
-    } else if (slide.numSubslides) {
+    } else if (slide.subslideType == "indefinite") {
         let p = document.createElement("p");
         p.classList.add("subslide-count");
         p.id = `subslide-count-i${slide.id}`;
@@ -247,7 +246,9 @@ function editSlideInDOM(div, slide) {
         else
             p.textContent = `${slide.numSubslides} subslides`;
         div.appendChild(p);
-    } else if (slide.template == "youtube") {
+    }
+
+    if (slide.hasPlaybackControls) {
         let controls = document.getElementById("playback-controls-sample").cloneNode(true);
         controls.id = `playback-controls-i${slide.id}`;
         controls.classList.remove("hidden");
@@ -259,11 +260,15 @@ function editSlideInDOM(div, slide) {
     }
 }
 function moveSlide(id, offset) {
-    let oldIndex = parseInt(playlist[id].idx);
+    let oldIndex = parseInt(playlist.getSlide(id).idx);
 
     if (offset === 0) { // Delete slide
-        delete playlist[id];
+        playlist.deleteSlide(id);
         playlistElement.removeChild( playlistElement.children[oldIndex] );
+        if (curSlideObj.id === id) {
+            curSlideObj = Slide();
+            selectedSlide = null;
+        }
     } else {
         let newIndex = oldIndex + offset;
         if (newIndex < 0 || newIndex >= playlist.length)
@@ -278,7 +283,7 @@ function moveSlide(id, offset) {
     // Reevaluate the index of every slide
     for (let [idx, e] of Object.entries(Array.from(playlistElement.children))) {
         e.dataset.idx = idx;
-        playlist[e.dataset.id].idx = idx;
+        playlist.updateSlide(e.dataset.id, { idx });
         if (curSlideObj.id == e.dataset.id) {
             curSlideObj.idx = idx;
         }
@@ -381,7 +386,7 @@ function editSlide(id = null) {
     let dialog = window.open(url, "edit-slide", "width=800,height=500");
     setTimeout(() => {
         dialog.postMessage(
-            { type: "init", slide: playlist[id] },
+            { type: "init", slide: playlist.getSlide(id) },
             "*"
         );
     }, 1000);
@@ -406,87 +411,13 @@ function onOpenBtnClick() {
 
 function closePlaylist() {
     playlistElement.replaceChildren();
-    playlist = {};
-    nextSlideId = 0;
+    playlist = null;
 
     document.getElementById("save-playlist-btn").classList.add("hidden");
     document.getElementById("close-playlist-btn").classList.add("hidden");
     document.getElementById("playlist-name").textContent = "";
 
     document.getElementById("playlist-setup-section").classList.remove("hidden");
-}
-
-function renderPreview(...fields) {
-    let nonEmptyFields = fields
-        .filter(x => x)
-        .map(s => s.replaceAll("<br>", "🆕"));
-    return nonEmptyFields.join(" - ");
-}
-
-const TEMPLATES = [
-    ["welcome", ["year", "month", "day"]],
-    ["bible", ["title", "location"]],
-    ["song", ["title", "name"]],
-    ["title", ["title", "subtitle"]],
-    ["embed", ["url"]],
-    ["youtube", ["videoId"]],
-]
-const SUBSLIDE_TEMPLATES_A = ["bible", "song"];
-const SUBSLIDE_TEMPLATES_B = ["embed"];
-function parseTextPlaylist(text) {
-    const push = item => {
-        id = nextSlideId++;
-        playlist[id] = {id, idx: id, ...item};
-    }
-
-    let newline = text.includes("\r") ? "\r\n" : "\n";
-    let lines = text.trim().split(newline);
-    let i = 0;
-    let curSlide = {};
-    while (i < lines.length) {
-        let [templateNum, ...args] = lines[i].match(/(\\.|[^,])+/g);
-
-        let [templateName, positionalArgs] = TEMPLATES[templateNum];
-        let positionalsMatched = 0;
-
-        curSlide.template = templateName;
-
-        for (let arg of args) {
-            if (arg.includes("=")) {
-                let [key, val] = arg.split("=");
-                curSlide[key] = val;
-            } else {
-                let key = positionalArgs[positionalsMatched++];
-                curSlide[key] = arg;
-            }
-        }
-
-        if (SUBSLIDE_TEMPLATES_A.includes(templateName)) {
-            curSlide.subslides = ["<Title Subslide>"];
-            let subslide = "";
-            do {
-                subslide += lines[++i] + "\n";
-                if ( lines[i].match(/(N|E)$/) ) {
-                    curSlide.subslides.push(subslide.slice(0, -2)); // Remove N|E and \n
-                    subslide = "";
-                }
-            } while (!lines[i].endsWith("E"));
-        } else if (SUBSLIDE_TEMPLATES_B.includes(templateName)) {
-            curSlide.numSubslides = 1;
-        }
-
-        if (!curSlide.preview) {
-            curSlide.preview = positionalArgs
-                .slice(0, positionalsMatched)
-                .map(key => curSlide[key])
-                .join(" - ");
-        }
-
-        push(curSlide);
-        curSlide = {};
-
-        i++;
-    }
 }
 
 async function openPlaylist(file) {
@@ -496,14 +427,12 @@ async function openPlaylist(file) {
     closePlaylist();
     
     if (file.type == "text/plain") {
-        let text = await file.text();
-        parseTextPlaylist(text);
+        playlist = Playlist.fromTxt(await file.text());
     } else if (file.type == "application/json") {
-        playlist = JSON.parse(await file.text());
-        nextSlideId = Math.max(Object.keys(playlist)) + 1;
+        playlist = Playlist.fromJson(await file.text());
     }
 
-    for (let item of Object.values(playlist)) {
+    for (let item of playlist) {
         let div = addSlideToDOM(item.id, item.idx);
         editSlideInDOM(div, item);
     }
@@ -520,7 +449,7 @@ function pastePlaylist() {
 }
 
 function savePlaylist() {
-    let exportFile = new File([JSON.stringify(playlist, undefined, 2)], "playlist.json");
+    let exportFile = new File([playlist.toJson()], "playlist.json");
     let url = URL.createObjectURL(exportFile);
     let a = document.createElement("a");
     a.href = url;
@@ -564,7 +493,7 @@ function togglePlayback(e) {
     e.stopPropagation();
 
     let slideId = e.currentTarget.parentElement.parentElement.dataset.id;
-    let slide = playlist[slideId];
+    let slide = playlist.getSlide(slideId);
     slideshowWindow.postMessage({
         type: "togglePlayback",
         videoId: slide.videoId, start: slide.start, end: slide.end,
@@ -642,21 +571,19 @@ function handleEditSlideMsg(data) {
     let {id, idx} = slide;
 
     if (id === "new") {
-        id = nextSlideId++;
-        playlist[id] = {...slide, id, idx};
-        addSlideToDOM(id, idx);
+        slide = playlist.addSlide({...slide, idx});
+        addSlideToDOM(slide.id, idx);
     } else {
-        slide = {...playlist[id], ...slide};
-        playlist[id] = slide;
+        slide = playlist.updateSlide(id, slide);
 
         if (curSlideObj.id == id) {
             curSlideObj = slide;
-            curSlide = slideObjToSlide(slide, curSubslideIdx);
+            curSlide = slide.getSlideshowData(curSubslideIdx);
             refreshSlideShow();
         }
     }
 
-    editSlideInDOM(playlistElement.children[idx], playlist[id]);
+    editSlideInDOM(playlistElement.children[idx], slide);
 }
 
 function handlePastePlaylist(data, source) {
@@ -722,7 +649,7 @@ async function checkVersion() {
     let resp = await fetch("/api/update/check");
     if (!resp.ok)
         throw Error();
-    let {curVersion, latestVersion} = await resp.json();
+    let {curVersion} = await resp.json();
     let curYear = new Date().getFullYear();
 
     if (!curVersion.version || !curVersion.date) {
@@ -736,9 +663,6 @@ async function checkVersion() {
     );
     let versionStr = `Church Presenter ${curVersion.version} (${formattedDate}) © Sunny Yan ${curYear}`;
     document.getElementById("version-info").textContent = versionStr;
-
-    if (curVersion.version !== latestVersion.version)
-        openUpdater();
 }
 const openUpdater = e => window.open("dialogs/updater.html", "updater", "width=500,height=500")
 

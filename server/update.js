@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { get } from 'node:https';
+import { promisify } from 'node:util';
 import { platform } from 'os';
 
 const getAsync = (url, options) => new Promise(resolve => (
@@ -19,26 +20,34 @@ const waitForResp = (res) => new Promise(resolve => {
         resolve(data)
     })
 });
-const execAsync = (cmd) => new Promise((resolve,reject) => {
-    exec(cmd, (err, stdout, stderr) => {
-        if (err)
-            reject(err)
-        else
-            resolve([stdout, stderr]);
-    })
-})
+const execAsync = promisify(exec);
 
 let curVersionCache = null;
 async function getCurrentVersion() {
-    if (!curVersionCache) {
-        try {
-            let contents = await readFile("version.json");
-            curVersionCache = JSON.parse(contents);
-        } catch {
-            curVersionCache = {};
-        }
+    if (curVersionCache)
+        return curVersionCache;
+
+    try {
+        let resp = await execAsync(`git log --date=iso-strict --format="%ad%n%s" -1`);
+        let text = resp.stdout.split("\n");
+        let date = text[0];
+        let message = "\n".join(text.slice(1));
+        let [version, changes] = message.split(" - ");
+
+        curVersionCache = {date, version, changes};
+        return curVersionCache;
+    } catch {}
+
+    try {
+        let contents = await readFile("version.json");
+        curVersionCache = JSON.parse(contents);
+        return curVersionCache;
+    } catch {
+        curVersionCache = {};
+        return curVersionCache;
     }
-    return curVersionCache;
+
+
 }
 
 async function loadCache() {
