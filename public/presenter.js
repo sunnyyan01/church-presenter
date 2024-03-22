@@ -188,7 +188,19 @@ function onSlideClick(e) {
 
     refreshSlideShow()
 }
+function reindexSlides(start) {
+    for (
+        let i = start, e = playlistElement.children[start];
+        e;
+        e = playlistElement.children[++i]
+    ) {
+        e.dataset.idx = i;
+        playlist[e.dataset.id].idx = i;
+    }
 
+    if (curSlideObj.id != -1)
+        curSlideObj.idx = playlist[curSlideObj.id].idx;
+}
 function addSlideToDOM(id, idx = -1) {
     let div = slideSample.cloneNode(true);
 
@@ -200,19 +212,19 @@ function addSlideToDOM(id, idx = -1) {
     div.addEventListener("click", onSlideClick);
     div.addEventListener("contextmenu", openSlideContextMenu);
 
-    if (idx === -1) {
-        playlistElement.appendChild(div);
-        return div;
-    }
-
-    for (let child of playlistElement.children) {
-        if (parseInt(child.dataset.idx) > idx) {
-            child.insertAdjacentElement("beforeBegin", div);
-            return div;
+    // Insert in middle of the playlist
+    if (idx !== -1) {
+        for (let child of playlistElement.children) {
+            if (parseInt(child.dataset.idx) >= idx) {
+                child.insertAdjacentElement("beforeBegin", div);
+                reindexSlides(idx);
+                return div;
+            }
         }
     }
-    playlistElement.appendChild(div);
 
+    // Insert at end of playlist
+    playlistElement.appendChild(div);
     return div;
 }
 function editSlideInDOM(div, slide) {
@@ -242,10 +254,10 @@ function editSlideInDOM(div, slide) {
         let p = document.createElement("p");
         p.classList.add("subslide-count");
         p.id = `subslide-count-i${slide.id}`;
-        if (curSlideObj.id == slide.id)
-            p.textContent = `Subslide ${curSubslideIdx+1} of ${slide.numSubslides}`;
-        else
-            p.textContent = `${slide.numSubslides} subslides`;
+        p.textContent = translateSubslideCount(
+            curSlideObj.id == slide.id ? curSubslideIdx+1 : undefined,
+            slide.numSubslides
+        );
         div.appendChild(p);
     } else if (slide.template == "youtube") {
         let controls = document.getElementById("playback-controls-sample").cloneNode(true);
@@ -260,12 +272,12 @@ function editSlideInDOM(div, slide) {
 }
 function moveSlide(id, offset) {
     let oldIndex = parseInt(playlist[id].idx);
+    let newIndex = oldIndex + offset;
 
     if (offset === 0) { // Delete slide
         delete playlist[id];
         playlistElement.removeChild( playlistElement.children[oldIndex] );
     } else {
-        let newIndex = oldIndex + offset;
         if (newIndex < 0 || newIndex >= playlist.length)
             return;
 
@@ -276,13 +288,7 @@ function moveSlide(id, offset) {
     }
 
     // Reevaluate the index of every slide
-    for (let [idx, e] of Object.entries(Array.from(playlistElement.children))) {
-        e.dataset.idx = idx;
-        playlist[e.dataset.id].idx = idx;
-        if (curSlideObj.id == e.dataset.id) {
-            curSlideObj.idx = idx;
-        }
-    }
+    reindexSlides(Math.min(oldIndex, newIndex));
 }
 
 // ===
@@ -319,7 +325,9 @@ function prevSubslide() {
     } else if (curSlideObj.numSubslides) {
         curSlide = slideObjToSlide(curSlideObj, --curSubslideIdx);
         document.getElementById(`subslide-count-i${curSlideObj.id}`)
-            .textContent = `Subslide ${curSubslideIdx+1} of ${curSlideObj.numSubslides}`;
+            .textContent = translateSubslideCount(
+                curSubslideIdx+1, curSlideObj.numSubslides
+            );
     } else {
         return prevSlide();
     }
@@ -342,7 +350,9 @@ function nextSubslide() {
 
         curSlide = slideObjToSlide(curSlideObj, ++curSubslideIdx);
         document.getElementById(`subslide-count-i${curSlideObj.id}`)
-            .textContent = `Subslide ${curSubslideIdx+1} of ${curSlideObj.numSubslides}`;
+            .textContent = translateSubslideCount(
+                curSubslideIdx+1, curSlideObj.numSubslides
+            );
     } else {
         return nextSlide();
     }
@@ -352,7 +362,7 @@ function nextSubslide() {
 function jumpToSubslide() {
     if (!curSlideObj.subslides) return;
 
-    let searchTerm = window.prompt("Enter a search term:");
+    let searchTerm = window.prompt(TRANSLATIONS.jumpPrompt);
     let resultIdx = curSlideObj.subslides.findIndex(
         subslide => subslide.includes(searchTerm)
     );
@@ -370,7 +380,7 @@ function jumpToSubslide() {
 function editSlide(id = null) {
     if (id === null) {
         if (curSlideObj.id == -1) {
-            alert("Select a slide first!");
+            alert(TRANSLATIONS.noSlideSelected);
             return;
         } else {
             id = curSlideObj.id;
@@ -406,6 +416,17 @@ function onOpenBtnClick() {
 
 function closePlaylist() {
     playlistElement.replaceChildren();
+    
+    curSlide = {
+        template: "blank",
+    };
+    curSlideObj = {
+        template: "blank",
+        id: -1,
+        idx: -1,
+    };
+    curSubslideIdx = 0;
+    selectedSlide = null;
     playlist = {};
     nextSlideId = 0;
 
@@ -500,7 +521,7 @@ async function openPlaylist(file) {
         parseTextPlaylist(text);
     } else if (file.type == "application/json") {
         playlist = JSON.parse(await file.text());
-        nextSlideId = Math.max(Object.keys(playlist)) + 1;
+        nextSlideId = Math.max(...Object.keys(playlist)) + 1;
     }
 
     for (let item of Object.values(playlist)) {
@@ -693,6 +714,7 @@ window.addEventListener("message", e => {
     }
 })
 
+let translationScript;
 const TEXT_NODE_TYPES = ["H1", "H2", "H3", "H4", "H5", "H6", "P"]
 async function refreshTranslations() {
     let lang = settings.lang || "en";
@@ -716,6 +738,7 @@ async function refreshTranslations() {
             }
         }
     }
+    translationScript.src = `translations/${lang}.js`;
 }
 
 async function checkVersion() {
@@ -736,9 +759,6 @@ async function checkVersion() {
     );
     let versionStr = `Church Presenter ${curVersion.version} (${formattedDate}) © Sunny Yan ${curYear}`;
     document.getElementById("version-info").textContent = versionStr;
-
-    if (curVersion.version !== latestVersion.version)
-        openUpdater();
 }
 const openUpdater = e => window.open("dialogs/updater.html", "updater", "width=500,height=500")
 
@@ -756,6 +776,7 @@ window.addEventListener("load", e => {
     
     timerElement = document.getElementById("timer");
 
+    translationScript = document.getElementById("translation-script");
     refreshTranslations();
 
     checkVersion();

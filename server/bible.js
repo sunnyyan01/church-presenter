@@ -30,9 +30,10 @@ export function bibleLookup(req, res) {
     // book = normaliseBook(book)
 
     let {loc} = req.query;
-
+    let version = req.query.version || "CUVMPS";
+    console.log(`https://www.biblegateway.com/passage/?search=${loc}&version=${version}&interface=print`)
     get(
-        `https://www.biblegateway.com/passage/?search=${loc}&version=CUVMPS&interface=print`,
+        `https://www.biblegateway.com/passage/?search=${loc}&version=${version}&interface=print`,
         bible_res => {
             let data = '';
           
