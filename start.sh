@@ -13,4 +13,4 @@ if [ -f $ARCHIVE ]; then
 fi
 
 echo Starting up ... please wait
-npm start
+DEV_MODE=1 npm start

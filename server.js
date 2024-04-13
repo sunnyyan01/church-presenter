@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { platform } from 'os';
 import { WebSocketServer } from 'ws';
 import { bibleLookup } from "./server/bible.js";
+import { openUserFiles } from './server/other.js';
 import { remoteQr } from "./server/remote.js"
 import { checkUpdate, downloadUpdate } from './server/update.js';
 
@@ -17,8 +18,12 @@ app.get('/api/bible-lookup', bibleLookup);
 app.get('/api/remote-qr', remoteQr);
 app.get('/api/update/check', checkUpdate);
 app.get('/api/update/download', downloadUpdate);
+app.get('/api/open-user-files', openUserFiles);
 
 const server = app.listen(app.port, () => {
+    if (process.env.DEV_MODE === "1")
+        return;
+
     console.log(`Opening http://localhost:${app.port}/presenter.html`);
     const openCmd = platform() == "win32" ? "start" : "xdg-open";
     exec(`${openCmd} http://localhost:${app.port}/presenter.html`,

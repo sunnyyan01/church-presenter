@@ -1,26 +1,6 @@
-import { exec } from 'child_process';
 import { readFile, writeFile } from 'node:fs/promises';
-import { get } from 'node:https';
-import { promisify } from 'node:util';
 import { platform } from 'os';
-
-const getAsync = (url, options) => new Promise(resolve => (
-    get(url, options, res => resolve(res))
-));
-const waitForResp = (res) => new Promise(resolve => {
-    let data = '';
-    
-    // A chunk of data has been received
-    res.on('data', chunk => {
-        data += chunk;
-    });
-    
-    // The whole response has been received
-    res.on('end', () => {
-        resolve(data)
-    })
-});
-const execAsync = promisify(exec);
+import { execAsync, getAsync, waitForResp } from './common.js';
 
 let curVersionCache = null;
 async function getCurrentVersion() {
@@ -32,7 +12,7 @@ async function getCurrentVersion() {
         let [_, date, version, changes] = /([0-9-T+:]+)\n([0-9v.]+) - (.+)/s.exec(resp.stdout);
         curVersionCache = {source: "git", date, version, changes};
         return curVersionCache;
-    } catch (e) {console.log(e)}
+    } catch (e) {}
 
     try {
         let contents = await readFile("version.json");

@@ -98,7 +98,7 @@ function onTemplateChange() {
     let changeTo = document.getElementById("template-selector").value;
     let fieldsToEnable = {
         "welcome": ["year", "month", "day"],
-        "bible": ["title", "location", "subslides"],
+        "bible": ["title", "location", "version", "subslides"],
         "song": ["title", "name", "subslides"],
         "title": ["title", "subtitle"],
         "embed": ["url", "numSubslides"],
@@ -173,7 +173,11 @@ async function autoSubslides(force = false) {
     loadingDiv.classList.remove("hidden");
     
     let location = getCurValue("location");
-    let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
+    let version = getCurValue("version");
+    let url = window.origin + `/api/bible-lookup?loc=${location}`;
+    if (version)
+        url += `&version=${version}`
+    let resp = await fetch(url);
     let text = await resp.text();
     if (resp.ok) {
         setValue("subslides", text);

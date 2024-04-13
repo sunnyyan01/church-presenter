@@ -23,9 +23,12 @@ async function autoBible() {
         for (let line of editor.value.split("\n")) {
             processed.push(line);
             let match = /1,.+,(.+)/.exec(line);
+            let match2 = /version=(.+)(,|$)/.exec(line);
             if (match) {
-                let location = match[1];
-                let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
+                let url = window.origin + `/api/bible-lookup?loc=${match[1]}`
+                if (match2)
+                    url += match2[1];
+                let resp = await fetch(url);
                 if (resp.ok) {
                     let text = await resp.text();
                     processed.push(text.trim()+"E");
@@ -36,9 +39,12 @@ async function autoBible() {
     } else {
         let line = editor.value.substring(selectionStart, selectionEnd);
         let match = /1,.+,(.+)/.exec(line);
+        let match2 = /version=(.+)(,|$)/.exec(line);
         if (match) {
-            let location = match[1];
-            let resp = await fetch(window.origin + `/api/bible-lookup?loc=${location}`);
+            let url = window.origin + `/api/bible-lookup?loc=${match[1]}`
+                if (match2)
+                    url += match2[1];
+            let resp = await fetch(url);
             if (resp.ok) {
                 let text = await resp.text();
                 editor.setRangeText(line + "\n" + text.trim() + "E\n");
