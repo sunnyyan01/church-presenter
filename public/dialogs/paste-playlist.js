@@ -22,12 +22,12 @@ async function autoBible() {
         let processed = [];
         for (let line of editor.value.split("\n")) {
             processed.push(line);
-            let match = /1,.+,(.+)/.exec(line);
+            let match = /1,[^,]+,([^,]+)/.exec(line);
             let match2 = /version=(.+)(,|$)/.exec(line);
             if (match) {
                 let url = window.origin + `/api/bible-lookup?loc=${match[1]}`
                 if (match2)
-                    url += match2[1];
+                    url += '&version=' + match2[1];
                 let resp = await fetch(url);
                 if (resp.ok) {
                     let text = await resp.text();
@@ -38,12 +38,12 @@ async function autoBible() {
         editor.value = processed.join("\n");
     } else {
         let line = editor.value.substring(selectionStart, selectionEnd);
-        let match = /1,.+,(.+)/.exec(line);
+        let match = /1,[^,]+,([^,]+)/.exec(line);
         let match2 = /version=(.+)(,|$)/.exec(line);
         if (match) {
             let url = window.origin + `/api/bible-lookup?loc=${match[1]}`
                 if (match2)
-                    url += match2[1];
+                    url += '&version=' + match2[1];
             let resp = await fetch(url);
             if (resp.ok) {
                 let text = await resp.text();
@@ -62,7 +62,7 @@ function submit() {
 
 function handleError({error}) {
     let errorDisp = document.getElementById("error-disp");
-    errorDisp.textContent = `Error parsing playlist: ${error}`;
+    errorDisp.textContent = error.message;
 }
 
 const MSG_HANDLERS = {

@@ -45,7 +45,12 @@ export async function bibleLookup(req, res) {
 
     let results = await Promise.all(
         versions.map(version => bibleGatewayLookup(loc, version))
-    );
+    ).catch(console.error);
+
+    if (!results) {
+        res.status(500).send();
+        return;
+    }
 
     let result = (
         versions.length === 2

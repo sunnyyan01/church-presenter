@@ -87,7 +87,7 @@ export async function downloadUpdate(req, res) {
         return await execAsync(cmd);
     }
 
-    let cmd = `curl -L "https://github.com/sunnyyan01/church-presenter/archive/refs/heads/main.tar.gz" > "${tmp}church-presenter-update-temp.tar.gz"`;
+    let cmd = `curl -L "https://github.com/sunnyyan01/church-presenter/archive/refs/heads/master.tar.gz" > "${tmp}church-presenter-update-temp.tar.gz"`;
     const downloadTask = () => execAsync(cmd);
 
     await Promise.all([versionTask(), downloadTask()]);

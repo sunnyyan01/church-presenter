@@ -444,6 +444,30 @@ function renderPreview(...fields) {
     return nonEmptyFields.join(" - ");
 }
 
+class TextReader {
+    lines;
+    idx;
+    canRead;
+    lastRead;
+
+    constructor(text) {
+        let newline = text.includes("\r") ? "\r\n" : "\n";
+        this.lines = text.trim().split(newline);
+        this.idx = -1;
+        this.canRead = this.lines.length > 0;
+        this.lastRead = null;
+    }
+
+    read() {
+        if (!this.canRead)
+            throw Error(`Cannot read past end of file`);
+        this.lastRead = this.lines[++this.idx];
+        if (this.idx + 1 >= this.lines.length)
+            this.canRead = false;
+        return this.lastRead;
+    }
+}
+
 const TEMPLATES = [
     ["welcome", ["year", "month", "day"]],
     ["bible", ["title", "location"]],
@@ -460,12 +484,11 @@ function parseTextPlaylist(text) {
         playlist[id] = {id, idx: id, ...item};
     }
 
-    let newline = text.includes("\r") ? "\r\n" : "\n";
-    let lines = text.trim().split(newline);
-    let i = 0;
+    parseTextPlaylist.reader = new TextReader(text);
+    let reader = parseTextPlaylist.reader;
     let curSlide = {};
-    while (i < lines.length) {
-        let [templateNum, ...args] = lines[i].match(/(\\.|[^,])+/g);
+    while (reader.canRead) {
+        let [templateNum, ...args] = reader.read().match(/(\\.|[^,])+/g);
 
         let [templateName, positionalArgs] = TEMPLATES[templateNum];
         let positionalsMatched = 0;
@@ -486,12 +509,12 @@ function parseTextPlaylist(text) {
             curSlide.subslides = ["<Title Subslide>"];
             let subslide = "";
             do {
-                subslide += lines[++i] + "\n";
-                if ( lines[i].match(/(N|E)$/) ) {
+                subslide += reader.read() + "\n";
+                if ( reader.lastRead.match(/(N|E)$/) ) {
                     curSlide.subslides.push(subslide.slice(0, -2)); // Remove N|E and \n
                     subslide = "";
                 }
-            } while (!lines[i].endsWith("E"));
+            } while (!reader.lastRead.endsWith("E"));
         } else if (SUBSLIDE_TEMPLATES_B.includes(templateName)) {
             curSlide.numSubslides = 1;
         }
@@ -505,8 +528,6 @@ function parseTextPlaylist(text) {
 
         push(curSlide);
         curSlide = {};
-
-        i++;
     }
 }
 
@@ -518,7 +539,12 @@ async function openPlaylist(file) {
     
     if (file.type == "text/plain") {
         let text = await file.text();
-        parseTextPlaylist(text);
+        try {
+            parseTextPlaylist(text);
+        } catch (e) {
+            console.error(e);
+            throw Error(`Error parsing playlist line ${parseTextPlaylist.reader.idx}: ${e.message}`)
+        }
     } else if (file.type == "application/json") {
         playlist = JSON.parse(await file.text());
         nextSlideId = Math.max(...Object.keys(playlist)) + 1;
