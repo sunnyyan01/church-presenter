@@ -54,6 +54,13 @@ tr.internal-use {
     display: none;
 }
 
+tr[data-state="hide"] {
+    display: none;
+}
+tr[data-state="drop"] {
+    color: purple;
+}
+
 th,
 td {
     position: relative;

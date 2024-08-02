@@ -1,20 +1,31 @@
 let editorMode = "quick";
 
+const TEMPLATE_ARGS = {
+    "welcome": ["year", "month", "day", "preview"],
+    "bible": ["title", "location", "version", "subslides", "preview"],
+    "song": ["title", "name", "subslides", "preview"],
+    "title": ["title", "subtitle", "preview"],
+    "embed": ["url", "numSubslides", "preview"],
+    "youtube": ["videoId","start","end","subtitles", "preview"],
+}
+
 function dataTableToSlide() {
     let slide = {};
     let table = document.getElementById("slide-data-table");
     for (let row of table.rows) {
-        if (!row.classList.contains("hidden")) {
-            let key = row.id.replace("slide-data-table-row--", "");
-            let valueElement = row.children[1].children[0];
+        if (row.dataset.state !== "hide") {
+            let key = row.dataset.key;
+            let value = row.children[1].children[0].value;
+
+            if (!value && row.dataset.state === "drop") continue;
 
             if (key === "subslides") {
-                slide[key] = valueElement.value.split(/N\s*\n/);
+                slide[key] = value.split(/N\s*\n/);
                 slide[key].unshift("<Title Slide>");
             } else if (key === "numSubslides") {
-                slide[key] = valueElement.value || 1;
+                slide[key] = value || 1;
             } else {
-                slide[key] = valueElement.value;
+                slide[key] = value;
             }
         }
     }
@@ -24,14 +35,10 @@ function slideToDataTable(slide) {
     let table = document.getElementById("slide-data-table");
     table.classList.add("hidden");
     for (let row of table.rows) {
-        let key = row.id.replace("slide-data-table-row--","");
+        let key = row.dataset.key;
         let val = slide[key];
 
-        if (val === undefined) {
-            if (key !== "preview") // Preview should not be ever hidden
-                row.classList.add("hidden");
-            continue;
-        }
+        if (!val) continue;
 
         let valueElement = row.children[1].children[0];
         if (key === "subslides") {
@@ -96,17 +103,25 @@ function switchMode(button) {
 
 function onTemplateChange() {
     let changeTo = document.getElementById("template-selector").value;
-    let fieldsToEnable = {
-        "welcome": ["year", "month", "day"],
-        "bible": ["title", "location", "version", "subslides"],
-        "song": ["title", "name", "subslides"],
-        "title": ["title", "subtitle"],
-        "embed": ["url", "numSubslides"],
-        "youtube": ["videoId","start","end","subtitles"],
-    }[changeTo] || [];
-    for (let key of fieldsToEnable) {
-        document.getElementById(`slide-data-table-row--${key}`)
-            .classList.remove("hidden");
+    let fieldsToEnable = TEMPLATE_ARGS[changeTo] || [];
+    const alwaysEnabled = ["template", "preview"];
+    let table = document.getElementById("slide-data-table");
+    for (let row of table.rows) {
+        if (!row.dataset.key) continue;
+
+        if (
+            fieldsToEnable.includes(row.dataset.key) ||
+            alwaysEnabled.includes(row.dataset.key)
+        ) {
+            row.dataset.state = "show";
+        } else {
+            let inputElement = row.getElementsByTagName("input")[0];
+            if (inputElement && inputElement.value) {
+                row.dataset.state = "drop";
+            } else {
+                row.dataset.state = "hide";
+            }
+        }
     }
 }
 
@@ -188,7 +203,7 @@ async function autoSubslides(force = false) {
     loadingDiv.classList.add("hidden");
 }
 
-const TEMPLATE_TO_ARGS = {
+const TEMPLATE_PREVIEW = {
     "welcome": ["year", "month", "day"],
     "bible": ["title", "location"],
     "song": ["title", "name"],
@@ -197,7 +212,7 @@ const TEMPLATE_TO_ARGS = {
     "youtube": ["videoId"],
 }
 function autoPreview() {
-    let preview = TEMPLATE_TO_ARGS[getCurValue("template")]
+    let preview = TEMPLATE_PREVIEW[getCurValue("template")]
         .map(getCurValue)
         .filter(x => x)
         .join(" - ")
@@ -238,7 +253,7 @@ function save() {
 }
 
 const KEY_MAP = {
-    "Ca": allAuto,
+    "CSa": allAuto,
     "Cs": save,
 }
 window.addEventListener("keydown", e => {

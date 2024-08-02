@@ -20,15 +20,15 @@
     </div>
 
     <table id="slide-data-table">
-        <tr id="slide-data-table-row--id" class="internal-use">
+        <tr id="slide-data-table-row--id" class="internal-use" data-key="id">
             <th>ID</th>
             <td><input disabled type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--idx" class="internal-use">
+        <tr id="slide-data-table-row--idx" class="internal-use" data-key="idx">
             <th>Index</th>
             <td><input disabled type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--template">
+        <tr id="slide-data-table-row--template" data-key="template">
             <th>Template</th>
             <td>
                 <select id="template-selector" onclick="onTemplateChange()">
@@ -41,39 +41,39 @@
                 </select>
             </td>
         </tr>
-        <tr id="slide-data-table-row--year">
+        <tr id="slide-data-table-row--year" data-key="year">
             <th>Year</th>
             <td>
                 <input type="number" min="2000" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
-        <tr id="slide-data-table-row--month">
+        <tr id="slide-data-table-row--month" data-key="month">
             <th>Month</th>
             <td>
                 <input type="number" min="1" max="12" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
-        <tr id="slide-data-table-row--day">
+        <tr id="slide-data-table-row--day" data-key="day">
             <th>Day</th>
             <td>
                 <input type="number" min="1" max="31" />
                 <button class="small" onclick="autoDate()">Auto</button>
             </td>
         </tr>
-        <tr id="slide-data-table-row--title">
+        <tr id="slide-data-table-row--title" data-key="title">
             <th>Title</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--location">
+        <tr id="slide-data-table-row--location" data-key="location">
             <th>Location</th>
             <td>
                 <input type="text" pattern="^.+ ?\d+(:\d+(-\d+))?$" />
                 <button class="small" onclick="autoBibleFormat()">Auto</button>
             </td>
         </tr>
-        <tr id="slide-data-table-row--version">
+        <tr id="slide-data-table-row--version" data-key="version">
             <th>Version</th>
             <td>
                 <select>
@@ -83,45 +83,45 @@
                 </select>
             </td>
         </tr>
-        <tr id="slide-data-table-row--name">
+        <tr id="slide-data-table-row--name" data-key="name">
             <th>Name</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--subtitle">
+        <tr id="slide-data-table-row--subtitle" data-key="subtitle">
             <th>Subtitle</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--source">
+        <tr id="slide-data-table-row--source" data-key="source">
             <th>Source</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--videoId">
+        <tr id="slide-data-table-row--videoId" data-key="videoId">
             <th>Video ID</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--start">
+        <tr id="slide-data-table-row--start" data-key="start">
             <th>Start</th>
             <td>
                 <input type="text" />
                 <button class="small" onclick="autoTimeConvert()">Auto</button>
             </td>
         </tr>
-        <tr id="slide-data-table-row--end">
+        <tr id="slide-data-table-row--end" data-key="end">
             <th>End</th>
             <td>
                 <input type="text" />
                 <button class="small" onclick="autoTimeConvert()">Auto</button>
             </td>
         </tr>
-        <tr id="slide-data-table-row--url">
+        <tr id="slide-data-table-row--url" data-key="url">
             <th>URL</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--numSubslides">
+        <tr id="slide-data-table-row--numSubslides" data-key="numSubslides">
             <th>Page Count</th>
             <td><input type="text" /></td>
         </tr>
-        <tr id="slide-data-table-row--subslides">
+        <tr id="slide-data-table-row--subslides" data-key="subslides">
             <th>Subslides</th>
             <td>
                 <textarea cols="80" rows="15"></textarea>
@@ -132,7 +132,7 @@
                 </div>
             </td>
         </tr>
-        <tr id="slide-data-table-row--subtitles">
+        <tr id="slide-data-table-row--subtitles" data-key="subtitles">
             <th>Subtitles</th>
             <td>
                 <select id="subtitles-selector">
@@ -143,7 +143,7 @@
                 </select>
             </td>
         </tr>
-        <tr id="slide-data-table-row--preview">
+        <tr id="slide-data-table-row--preview" data-key="preview">
             <th>Preview</th>
             <td>
                 <input type="text" />

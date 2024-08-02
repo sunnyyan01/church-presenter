@@ -259,7 +259,8 @@ function editSlideInDOM(div, slide) {
             slide.numSubslides
         );
         div.appendChild(p);
-    } else if (slide.template == "youtube") {
+    }
+    if (slide.template == "youtube") {
         let controls = document.getElementById("playback-controls-sample").cloneNode(true);
         controls.id = `playback-controls-i${slide.id}`;
         controls.classList.remove("hidden");
@@ -693,7 +694,6 @@ function handleEditSlideMsg(data) {
         playlist[id] = {...slide, id, idx};
         addSlideToDOM(id, idx);
     } else {
-        slide = {...playlist[id], ...slide};
         playlist[id] = slide;
 
         if (curSlideObj.id == id) {
