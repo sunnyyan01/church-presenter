@@ -1,4 +1,5 @@
 let editorMode = "quick";
+let jsonEditor;
 
 const TEMPLATE_ARGS = {
     "welcome": ["year", "month", "day", "preview"],
@@ -7,6 +8,11 @@ const TEMPLATE_ARGS = {
     "title": ["title", "subtitle", "preview"],
     "embed": ["url", "numSubslides", "preview"],
     "youtube": ["videoId","start","end","subtitles", "preview"],
+}
+
+function pageToSlide() {
+    if (editorMode === "quick") return dataTableToSlide();
+    else /* json */ return JSON.parse(jsonEditor.value);
 }
 
 function dataTableToSlide() {
@@ -31,6 +37,21 @@ function dataTableToSlide() {
     }
     return slide;
 }
+
+function slideToPage(slide) {
+    if (editorMode === "quick") {
+        slideToDataTable(slide);
+    } else { // json
+        try {
+            jsonEditor.value = JSON.stringify(slide);
+        } catch (e) {
+            console.error(e);
+            alert("Invalid JSON, please correct before changing");
+            throw e;
+        }
+    }
+}
+
 function slideToDataTable(slide) {
     let table = document.getElementById("slide-data-table");
     table.classList.add("hidden");
@@ -38,7 +59,7 @@ function slideToDataTable(slide) {
         let key = row.dataset.key;
         let val = slide[key];
 
-        if (!val) continue;
+        if (val === undefined) continue;
 
         let valueElement = row.children[1].children[0];
         if (key === "subslides") {
@@ -52,19 +73,26 @@ function slideToDataTable(slide) {
 }
 
 window.addEventListener("message", e => {
-    if (e.data.type != "init")
-        return;
-    
-    let slide = e.data.slide;
-
-    slideToDataTable(slide);
-
-    document.getElementById("save-btn").classList.remove("hidden");
+    if (e.data.type === "init") {
+        let slide = e.data.slide;
+        slideToDataTable(slide);
+        document.getElementById("save-btn").classList.remove("hidden");
+    } else if (e.source.name === "saved-slides") {
+        let slide = e.data;
+        slide.id = getCurValue("id");
+        slide.idx = getCurValue("idx");
+        slideToDataTable(e.data);
+        jsonEditor.value = JSON.stringify(e.data, undefined, 2);
+    }
 })
 
 function getCurValue(key) {
-    let row = document.getElementById(`slide-data-table-row--${key}`);
-    return row.children[1].children[0].value;
+    if (editorMode === "quick") {
+        let row = document.getElementById(`slide-data-table-row--${key}`);
+        return row.children[1].children[0].value;
+    } else { //json
+        return JSON.parse(jsonEditor.value)[key];
+    }
 }
 function setValue(key, val) {
     let row = document.getElementById(`slide-data-table-row--${key}`);
@@ -72,8 +100,6 @@ function setValue(key, val) {
 }
 
 function switchMode(button) {
-    let jsonEditor = document.getElementById("json-editor")
-
     if (button.dataset.mode === "quick") {
         let slide;
         try {
@@ -228,28 +254,32 @@ function allAuto() {
     autoPreview();
     autoTimeConvert();
     autoSlides();
-    return true;
+}
+
+function loadSavedSlide() {
+    let win = window.open("saved-slides.html", "saved-slides", "width=500,height=500");
+    setTimeout(() => win.postMessage({
+        action: "load",
+        overwriteWarn: getCurValue("id") !== "new",
+    }), 1000);
+}
+function saveSlide() {
+    let slide = pageToSlide();
+    let win = window.open("saved-slides.html", "saved-slides", "width=500,height=500");
+    setTimeout(() => win.postMessage({
+        action: "save",
+        slide
+    }), 1000);
 }
 
 function save() {
-    let slide;
-    try {
-        slide = editorMode === "quick"
-            ? dataTableToSlide()
-            : JSON.parse(document.getElementById("json-editor").value);
-    } catch (e) {
-        console.error(e);
-        alert("Error parsing JSON, please fix before saving");
-        return true;
-    }
+    let slide = pageToSlide();
 
     window.opener.postMessage(
         {type: "edit-slide", slide}, "*"
     )
 
     window.close();
-
-    return true;
 }
 
 const KEY_MAP = {
@@ -265,7 +295,11 @@ window.addEventListener("keydown", e => {
     )
     let handler = KEY_MAP[key];
     if (handler) {
-        if (handler())
-            e.preventDefault();
+        handler();
+        e.preventDefault();
     }
+})
+
+window.addEventListener("load", () => {
+    jsonEditor = document.getElementById("json-editor");
 })

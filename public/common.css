@@ -16,6 +16,11 @@ h1,h2,h3,h4,h5,h6,p {
     cursor: pointer;
     opacity: 1;
 }
+.button[data-disabled=true] {
+    pointer-events: none;
+    cursor: default;
+    transition: none;
+}
 
 .icon-button {
 }
@@ -44,6 +49,9 @@ h1,h2,h3,h4,h5,h6,p {
 .text-button.primary:hover {
     background-color: #00F;
 }
+.text-button.primary[data-disabled=true] {
+    background-color: grey;
+}
 .text-button.secondary {
     border: 1px solid #00FC;
     color: #00FC;
@@ -51,6 +59,10 @@ h1,h2,h3,h4,h5,h6,p {
 .text-button.secondary:hover {
     border: 1px solid #00F;
     color: #00F;
+}
+.text-button.secondary[data-disabled=true] {
+    border-color: grey;
+    color: grey;
 }
 
 .hidden {

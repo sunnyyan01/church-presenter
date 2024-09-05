@@ -19,6 +19,15 @@
         </button>
     </div>
 
+    <div class="toolbar">
+        <div class="button icon-button" onclick="loadSavedSlide()" title="Load from saved slides">
+            <img src="../icons/open-folder.svg" />
+        </div>
+        <div class="button icon-button" onclick="saveSlide()" title="Save to saved slides">
+            <img src="../icons/save-folder.svg" />
+        </div>
+    </div>
+
     <table id="slide-data-table">
         <tr id="slide-data-table-row--id" class="internal-use" data-key="id">
             <th>ID</th>
@@ -152,10 +161,10 @@
         </tr>
     </table>
 
-    <textarea id="json-editor" class="hidden" cols="80" rows="25">
+    <textarea id="json-editor" class="hidden" cols="80" rows="15">
     </textarea>
 
-    <button id="save-btn" class="large hidden" onclick="save()">
+    <div class="button text-button large primary hidden" id="save-btn" onclick="save()">
         Save & Close
     </button>
 </body>

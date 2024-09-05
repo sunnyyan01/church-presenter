@@ -1,0 +1,56 @@
+body {
+    margin: 10px;
+}
+
+#warning {
+    border-radius: 20px;
+    background-color: orange;
+    padding: 10px;
+}
+#warning::before {
+    content: "⚠ ";
+}
+#warning:empty {
+    display: none;
+}
+
+#saved-slides-list {
+    display: flex;
+    flex-direction: column;
+}
+
+#saved-slides-list:empty::before {
+    content: "There are no saved slides";
+    text-align: center;
+    font-style: italic;
+}
+
+.saved-slide {
+    cursor: pointer;
+    padding: 2px 5px;
+    border: 2px solid transparent;
+}
+.saved-slide:hover {
+    background-color: rgba(0,255,255,0.25);
+}
+.saved-slide[data-selected=true] {
+    background-color: rgba(0,255,255,0.5);
+    border-color: cyan;
+}
+
+#slide-name-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 2px 5px;
+    margin-top: 5px;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    justify-content: space-between;
+}
+.button {
+    width: 45%;
+}

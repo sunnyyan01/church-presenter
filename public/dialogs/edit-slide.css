@@ -42,11 +42,15 @@ button.toggle-button:hover {
     background-color: rgba(0,255,255,1);
 }
 
-table#slide-data-table, textarea#json-editor {
-    margin-bottom: 20px;
+.toolbar {
+    display: flex;
+    flex-direction: row;
+    height: 60px;
+    width: 90%;
 }
 
-table#slide-data-table {
+#slide-data-table, #json-editor {
+    margin-bottom: 20px;
     width: 90%;
 }
 
