@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Church Presenter | Settings</title>
+    <script src="../common.js"></script>
+    <script src="../translations.js"></script>
     <script>
         let DEFAULTS = {
             "lang": "en",
@@ -16,6 +18,8 @@
                 row.children[1].value = val;
             }
         })
+
+        window.addEventListener("load", loadTranslations);
 
         function handleClose(save) {
             if (save) {

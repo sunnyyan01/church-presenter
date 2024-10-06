@@ -1,6 +1,15 @@
 import { JSDOM } from "jsdom";
 import { getAsync, waitForResp } from "./common.js";
 
+class PassageNotFoundError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        this.name = "PassageNotFoundError";
+        this.message = "Couldn't find requested passage";
+    }
+}
+
 async function bibleGatewayLookup(loc, version) {
     let res = await getAsync(`https://www.biblegateway.com/passage/?search=${loc}&version=${version}&interface=print`)
         .catch(console.error);
@@ -11,7 +20,7 @@ async function bibleGatewayLookup(loc, version) {
     let dom = new JSDOM(data);
     let div = dom.window.document.querySelector("div.passage-content");
     if (!div) {
-        throw Error("Couldn't find requested passage");
+        throw new PassageNotFoundError();
     }
     let text = "";
     for (let span of div.getElementsByTagName("span")) {
@@ -43,21 +52,21 @@ export async function bibleLookup(req, res) {
     let versionStr = req.query.version || "CUVMPS";
     let versions = versionStr.split(",");
 
-    let results = await Promise.all(
-        versions.map(version => bibleGatewayLookup(loc, version))
-    ).catch(console.error);
+    try {
+        let results = await Promise.all(
+            versions.map(version => bibleGatewayLookup(loc, version))
+        )
 
-    if (!results) {
-        res.status(500).send();
-        return;
+        let result = (
+            versions.length === 2
+            ? mergeVersions(...results)
+            : results.join("\n")
+        );
+        
+        res.type("text/plain");
+        res.send(result);
+    } catch (e) {
+        res.status(e instanceof PassageNotFoundError ? 404 : 500);
+        res.send(e.message);
     }
-
-    let result = (
-        versions.length === 2
-        ? mergeVersions(...results)
-        : results.join("\n")
-    );
-    
-    res.type("text/plain");
-    res.send(result);
 }

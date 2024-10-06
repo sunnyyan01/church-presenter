@@ -1,0 +1,28 @@
+#playlist-header,流程
+#save-playlist-btn,保存流程
+#close-playlist-btn,关闭流程
+#playlist-setup-text,现在没开流程，可以
+#open-playlist-btn,打开流程
+#playlist-setup-text2,或
+#new-playlist-btn,创新流程
+#slide-content-menu--edit,编辑
+#slide-content-menu--move-up,移动 ↑
+#slide-content-menu--move-down,移动 ↓
+#slide-content-menu--insert-above,插入 ↑
+#slide-content-menu--insert-below,插入 ↓
+#slide-content-menu--delete,删除
+#preview-header,预览
+#setup-preview-btn,打开预览
+#control-group-label-slide,幻灯片控制
+#prev-slide-btn,上一页 (←/↑/PgUp)
+#next-slide-btn,下一页 (→/↓/PgDn)
+#blank-btn,黑屏 (B)
+#control-group-label-setup,幻灯片设置
+#open-slideshow-btn,打开幻灯片窗口
+#remote-control-btn,手机遥控设置
+#settings-btn,其他设置
+a.updater-link,查看更新
+===
+jumpPrompt,输入搜索词:
+subslideCountSelected,第{}页 共{}页
+subslideCountUnselected,共{}页

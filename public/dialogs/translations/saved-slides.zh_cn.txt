@@ -1,0 +1,8 @@
+h1,收藏幻灯片
+.text-button.secondary,取消
+===
+pageTitle,收藏幻灯片
+actionLabel_load,打开
+actionLabel_save,保存
+overwriteOpenWarn,如果你打开一个收藏幻灯片，当前的数据会被覆盖
+overwriteSaveWarn,以此名保存会覆盖当前收藏的幻灯片

@@ -2,6 +2,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Church Presenter | Remote Setup</title>
+    <script src="../common.js"></script>
+    <script src="../translations.js"></script>
     <link href="../common.css" rel="stylesheet" />
     <style>
         body {
@@ -13,10 +15,11 @@
     </style>
 </head>
 <body>
-    <p>Scan this QR code</p>
+    <p id="prompt1">Scan this QR code</p>
     <img id="qr" />
-    <p>or open this link <a id="link"></a></p>
+    <p><span id="prompt2">or open this link</span> <a id="link"></a></p>
     <script>
+        loadTranslations();
         let qr = document.getElementById("qr");
         let link = document.getElementById("link");
         fetch("/api/remote-qr")

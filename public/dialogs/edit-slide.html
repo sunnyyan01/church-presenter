@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Church Presenter | Slide Editor</title>
+    <script src="../common.js"></script>
+    <script src="../translations.js"></script>
     <script src="edit-slide.js" charset="UTF-8"></script>
     <link href="../common.css" rel="stylesheet" />
     <link href="edit-slide.css" rel="stylesheet" />
@@ -20,10 +22,10 @@
     </div>
 
     <div class="toolbar">
-        <div class="button icon-button" onclick="loadSavedSlide()" title="Load from saved slides">
+        <div class="button icon-button" data-action="load-saved-slide" onclick="loadSavedSlide()" title="Load from saved slides">
             <img src="../icons/open-folder.svg" />
         </div>
-        <div class="button icon-button" onclick="saveSlide()" title="Save to saved slides">
+        <div class="button icon-button" data-action="save-saved-slide" onclick="saveSlide()" title="Save to saved slides">
             <img src="../icons/save-folder.svg" />
         </div>
     </div>

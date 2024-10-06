@@ -12,12 +12,12 @@ async function versionCheck() {
     let updateProgress = document.getElementById("update-progress");
 
     if (!curVersion.version) {
-        updateMessage.textContent = "There is a minor problem with your install, you can update to fix this";
+        updateMessage.textContent = TRANSLATIONS.noVersionInfo;
         updateButton.classList.remove("hidden");
     } else if (curVersion.version === latestVersion.version) {
-        updateMessage.textContent = "The latest version is already installed";
+        updateMessage.textContent = TRANSLATIONS.noUpdateAvail;
     } else {
-        updateMessage.textContent = "An update is available";
+        updateMessage.textContent = TRANSLATIONS.updateAvail;
         updateButton.classList.remove("hidden");
     }
 
@@ -26,23 +26,24 @@ async function versionCheck() {
     let formattedDate = new Date(curVersion.date).toLocaleDateString(
         undefined, {day: "numeric", month: "short", "year": "numeric"}
     );
-    updatePublishDate.textContent = `Published ${formattedDate}`
+    updatePublishDate.textContent = TRANSLATIONS.publishDate.format(formattedDate);
 
     updateDetail.textContent = latestVersion.changes;
 
     updateButton.addEventListener("click", async e => {
         e.target.disabled = true;
-        updateProgress.textContent = "Downloading update. You may close this window."
+        updateProgress.textContent = TRANSLATIONS.progressDownload;
         let resp = await fetch("/api/update/download");
         if (resp.ok) {
-            updateProgress.textContent = "Download complete. The update will be installed next time Church Presenter starts. You may close this window."
+            updateProgress.textContent = TRANSLATIONS.progressComplete;
         } else {
-            updateProgress.textContent = `Download failed: ${await resp.text()}`;
+            updateProgress.textContent = TRANSLATIONS.progressFailed.format(await resp.text());
             e.target.disabled = false;
         }
     })
 }
 
 window.addEventListener("load", () => {
+    loadTranslations();
     versionCheck();
 })

@@ -163,7 +163,7 @@ function onSlideClick(e) {
             .classList.remove("selected");
     else if (curSlideObj.numSubslides)
         document.getElementById(`subslide-count-i${curSlideObj.id}`)
-            .textContent = `${curSlideObj.numSubslides} subslides`;
+            .textContent = TRANSLATIONS.subslideCountUnselected.format(curSlideObj.numSubslides);
 
     let id = parseInt(e.currentTarget.dataset.id);
     curSlideObj = playlist[id];
@@ -183,7 +183,7 @@ function onSlideClick(e) {
             .classList.add("selected");
     else if (curSlideObj.numSubslides)
         document.getElementById(`subslide-count-i${id}`)
-            .textContent = `Subslide 1 of ${curSlideObj.numSubslides}`;
+            .textContent = TRANSLATIONS.subslideCountSelected.format(1, curSlideObj.numSubslides);
     selectedSlide = e.currentTarget;
 
     refreshSlideShow()
@@ -254,9 +254,10 @@ function editSlideInDOM(div, slide) {
         let p = document.createElement("p");
         p.classList.add("subslide-count");
         p.id = `subslide-count-i${slide.id}`;
-        p.textContent = translateSubslideCount(
-            curSlideObj.id == slide.id ? curSubslideIdx+1 : undefined,
-            slide.numSubslides
+        p.textContent = (
+            slide.id
+            ? TRANSLATIONS.subslideCountSelected.format(curSubslideIdx + 1, slide.numSubslides)
+            : TRANSLATIONS.subslideCountUnselected.format(slide.numSubslides)
         );
         div.appendChild(p);
     }
@@ -326,9 +327,7 @@ function prevSubslide() {
     } else if (curSlideObj.numSubslides) {
         curSlide = slideObjToSlide(curSlideObj, --curSubslideIdx);
         document.getElementById(`subslide-count-i${curSlideObj.id}`)
-            .textContent = translateSubslideCount(
-                curSubslideIdx+1, curSlideObj.numSubslides
-            );
+            .textContent = TRANSLATIONS.subslideCountSelected.format(curSubslideIdx + 1, slide.numSubslides);
     } else {
         return prevSlide();
     }
@@ -351,9 +350,7 @@ function nextSubslide() {
 
         curSlide = slideObjToSlide(curSlideObj, ++curSubslideIdx);
         document.getElementById(`subslide-count-i${curSlideObj.id}`)
-            .textContent = translateSubslideCount(
-                curSubslideIdx+1, curSlideObj.numSubslides
-            );
+            .textContent = TRANSLATIONS.subslideCountSelected.format(curSubslideIdx + 1, slide.numSubslides);
     } else {
         return nextSlide();
     }
@@ -381,7 +378,6 @@ function jumpToSubslide() {
 function editSlide(id = null) {
     if (id === null) {
         if (curSlideObj.id == -1) {
-            alert(TRANSLATIONS.noSlideSelected);
             return;
         } else {
             id = curSlideObj.id;
@@ -443,30 +439,6 @@ function renderPreview(...fields) {
         .filter(x => x)
         .map(s => s.replaceAll("<br>", "🆕"));
     return nonEmptyFields.join(" - ");
-}
-
-class TextReader {
-    lines;
-    idx;
-    canRead;
-    lastRead;
-
-    constructor(text) {
-        let newline = text.includes("\r") ? "\r\n" : "\n";
-        this.lines = text.trim().split(newline);
-        this.idx = -1;
-        this.canRead = this.lines.length > 0;
-        this.lastRead = null;
-    }
-
-    read() {
-        if (!this.canRead)
-            throw Error(`Cannot read past end of file`);
-        this.lastRead = this.lines[++this.idx];
-        if (this.idx + 1 >= this.lines.length)
-            this.canRead = false;
-        return this.lastRead;
-    }
 }
 
 const TEMPLATES = [
@@ -563,8 +535,8 @@ async function openPlaylist(file) {
     document.getElementById("playlist-setup-section").classList.add("hidden");
 }
 
-function pastePlaylist() {
-    window.open("dialogs/paste-playlist.html", "paste-playlist", "width=800,height=700");
+function newPlaylist() {
+    window.open("dialogs/new-playlist.html", "new-playlist", "width=800,height=700");
 }
 
 function savePlaylist() {
@@ -706,21 +678,23 @@ function handleEditSlideMsg(data) {
     editSlideInDOM(playlistElement.children[idx], playlist[id]);
 }
 
-function handlePastePlaylist(data, source) {
+function handleNewPlaylist(data, source) {
     let {playlist} = data;
     let file = new File([playlist], "playlist.txt", {type: "text/plain"});
     openPlaylist(file).then(
-        () => source.postMessage({type: "paste-success"}),
-        error => source.postMessage({type: "paste-error", error})
+        () => source.postMessage({type: "submit-success"}),
+        error => source.postMessage({type: "submit-error", error})
     );
 }
 
 function saveSettings(data) {
     let newSettings = data.settings;
     localStorage.setItem("settings", JSON.stringify(newSettings));
-    settings = newSettings;
+    
+    if (settings.lang != newSettings.lang)
+        loadTranslations();
 
-    refreshTranslations();
+    settings = newSettings;
 }
 
 window.addEventListener("message", e => {
@@ -728,8 +702,8 @@ window.addEventListener("message", e => {
         case "edit-slide":
             handleEditSlideMsg(e.data);
             break;
-        case "paste-playlist":
-            handlePastePlaylist(e.data, e.source);
+        case "new-playlist":
+            handleNewPlaylist(e.data, e.source);
             break;
         case "set-time-display":
             setTimeDisplay(e.data);
@@ -739,33 +713,6 @@ window.addEventListener("message", e => {
             break;
     }
 })
-
-let translationScript;
-const TEXT_NODE_TYPES = ["H1", "H2", "H3", "H4", "H5", "H6", "P"]
-async function refreshTranslations() {
-    let lang = settings.lang || "en";
-    let resp = await fetch(`./translations/${lang}.csv`);
-    if (resp.ok) {
-        let text = (await resp.text()).trim();
-        let sep = text.includes("\r") ? "\r\n" : "\n";
-        for (let line of text.split(sep)) {
-            let [id, string] = line.split(",", 2);
-            try {
-                let e = document.getElementById(id);
-                if (
-                    TEXT_NODE_TYPES.includes(e.nodeName) ||
-                    (e.nodeName === "DIV" && e.classList.contains("text-button"))
-                )
-                    e.textContent = string;
-                else
-                    e.title = string;
-            } catch {
-                console.error(`Error setting ${id}`);
-            }
-        }
-    }
-    translationScript.src = `translations/${lang}.js`;
-}
 
 async function checkVersion() {
     let resp = await fetch("/api/update/check");
@@ -802,8 +749,7 @@ window.addEventListener("load", e => {
     
     timerElement = document.getElementById("timer");
 
-    translationScript = document.getElementById("translation-script");
-    refreshTranslations();
+    loadTranslations();
 
     checkVersion();
     checkServer();

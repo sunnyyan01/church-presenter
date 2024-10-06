@@ -1,0 +1,8 @@
+h1,Saved Slides
+.text-button.secondary,Cancel
+===
+pageTitle,Saved Slides
+actionLabel_load,Open
+actionLabel_save,Save
+overwriteOpenWarn,If you load a slide, any data currently in this slide will be overwritten
+overwriteSaveWarn,Saving under this name will overwrite a previously saved slide

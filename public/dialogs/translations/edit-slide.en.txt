@@ -1,0 +1,25 @@
+.toggle-button[data-mode="quick"],Quick Editor
+.toggle-button[data-mode="json"],JSON Editor
+.icon-button[data-action="load-saved-slide"],Load saved slide
+.icon-button[data-action="save-saved-slide"],Save saved slide
+#slide-data-table-row--template th,Template
+#slide-data-table-row--year th,Year
+#slide-data-table-row--month th,Month
+#slide-data-table-row--day th,Day
+#slide-data-table-row--title th,Title
+#slide-data-table-row--location th,Location
+#slide-data-table-row--version th,Version
+#slide-data-table-row--name th,Name
+#slide-data-table-row--subtitle th,Subtitle
+#slide-data-table-row--source th,Source
+#slide-data-table-row--videoId th,Video ID
+#slide-data-table-row--start th,Start
+#slide-data-table-row--end th,End
+#slide-data-table-row--url th,URL
+#slide-data-table-row--numSubslides th,Page Count
+#slide-data-table-row--subslides th,Subslides
+#slide-data-table-row--subtitles th,Subtitles
+#slide-data-table-row--preview th,Preview
+#save-btn,Save & Close
+===
+pageTitle,Edit Slide

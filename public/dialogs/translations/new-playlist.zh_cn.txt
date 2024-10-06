@@ -1,0 +1,5 @@
+.text-button[data-action="fix-symbols"],修理符号
+.text-button[data-action="auto-bible"],自动经文查找
+.submit-btn,完成
+===
+pageTitle,创新流程

@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <title>Church Presenter</title>
 
-<script src="presenter.js"></script>
+<script src="common.js"></script>
 <script src="duplicateSlideShow.js"></script>
-<script id="translation-script" src="translations/en.js"></script>
+<script src="translations.js"></script>
+<script src="presenter.js"></script>
 <link href="common.css" rel="stylesheet" />
 <link href="presenter.css" rel="stylesheet" />
 </head>
@@ -39,10 +40,10 @@
         />
         <p id="playlist-setup-text2"></p>
         <div
-            id="paste-playlist-btn" class="button text-button secondary"
-            onclick="pastePlaylist()"
+            id="new-playlist-btn" class="button text-button secondary"
+            onclick="newPlaylist()"
         >
-            Paste Playlist
+            New Playlist
         </div>
     </div>
     <div id="slide-sample" class="slide hidden">
@@ -59,22 +60,22 @@
         <p class="time-display"></p>
     </div>
     <div id="slide-context-menu" class="context-menu hidden">
-        <div class="button text-button secondary" data-action="edit">
+        <div id="slide-content-menu--edit" class="button text-button secondary" data-action="edit">
             Edit
         </div>
-        <div class="button text-button secondary" data-action="move-up">
-            Move ↑
+        <div id="slide-content-menu--move-up" class="button text-button secondary" data-action="move-up">
+            Move Up
         </div>
-        <div class="button text-button secondary" data-action="move-down">
-            Move ↓
+        <div id="slide-content-menu--move-down" class="button text-button secondary" data-action="move-down">
+            Move Dn
         </div>
-        <div class="button text-button secondary" data-action="insert-above">
-            Insert ↑
+        <div id="slide-content-menu--insert-above" class="button text-button secondary" data-action="insert-above">
+            Insert Up
         </div>
-        <div class="button text-button secondary" data-action="insert-below">
-            Insert ↓
+        <div id="slide-content-menu--insert-below" class="button text-button secondary" data-action="insert-below">
+            Insert Dn
         </div>
-        <div class="button text-button secondary" data-action="delete">
+        <div id="slide-content-menu--delete" class="button text-button secondary" data-action="delete">
             Delete
         </div>
     </div>

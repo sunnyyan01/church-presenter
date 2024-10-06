@@ -29,9 +29,14 @@ async function autoBible() {
                 if (match2)
                     url += '&version=' + match2[1];
                 let resp = await fetch(url);
+                let text = await resp.text();
                 if (resp.ok) {
-                    let text = await resp.text();
                     processed.push(text.trim()+"E");
+                } else {
+                    handleError({
+                        row: processed.length - 1,
+                        error: new Error(text),
+                    })
                 }
             }
         }
@@ -56,20 +61,22 @@ async function autoBible() {
 function submit() {
     let editor = document.getElementById("editor");
     window.opener.postMessage(
-        {type: "paste-playlist", playlist: editor.value}, "*"
+        {type: "new-playlist", playlist: editor.value}, "*"
     )
 }
 
-function handleError({error}) {
+function handleError({row, col, error}) {
     let errorDisp = document.getElementById("error-disp");
     errorDisp.textContent = error.message;
 }
 
 const MSG_HANDLERS = {
-    "paste-success": () => window.close(),
-    "paste-error": handleError,
+    "submit-success": () => window.close(),
+    "submit-error": handleError,
 };
 window.addEventListener("message", e => {
     let {data} = e;
     MSG_HANDLERS[data.type](data);
 })
+
+window.addEventListener("load", loadTranslations);

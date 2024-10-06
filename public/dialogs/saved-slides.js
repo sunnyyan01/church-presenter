@@ -11,7 +11,7 @@ function onSlideClick(e) {
     slideNameInput.value = selectedSlide.textContent;
     submitBtn.dataset.disabled = false;
     if (action === "save") {
-        warning.textContent = "Saving under this name will overwrite a previously saved slide"
+        warning.textContent = TRANSLATIONS.overwriteSaveWarn;
     }
 }
 
@@ -36,7 +36,7 @@ function onSlideNameChange(e) {
         if (selectedSlide === null)
             warning.textContent = "";
         else
-            warning.textContent = "Saving under this name will overwrite a previously saved slide";
+            warning.textContent = TRANSLATIONS.overwriteSaveWarn;
     }
 }
 
@@ -90,12 +90,14 @@ window.addEventListener("load", () => {
     slideNameInput = document.getElementById("slide-name-input");
     slideNameInput.onchange = onSlideNameChange;
     loadSlideList();
+
+    loadTranslations();
 })
 
 window.addEventListener("message", e => {
     ({action, slide} = e.data);
     slideList.dataset.action = action;
-    submitBtn.textContent = action === "load" ? "Open" : "Save";
+    submitBtn.textContent = TRANSLATIONS["actionLabel_" + action];
     if (e.data.overwriteWarn)
-        warning.textContent = "If you load a slide, any data currently in this slide will be overwritten";
+        warning.textContent = TRANSLATIONS.overwriteOpenWarn;
 })

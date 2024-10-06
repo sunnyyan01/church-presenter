@@ -1,0 +1,4 @@
+#prompt1,扫这个二维码
+#prompt2,或打开这网址
+===
+pageTitle,设置手机遥控

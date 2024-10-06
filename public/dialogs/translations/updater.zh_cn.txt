@@ -1,0 +1,11 @@
+#update-message,正在查看更新
+#update-button,更新
+===
+pageTitle,更新
+noVersionInfo,无法查出版本信息。你还可以更新。
+noUpdateAvail,你已经安装了最新的版本。
+updateAvail,找到新的版本
+publishDate,发布日期：{}
+progressDownload,正在下载更新。你可以关闭这窗口。
+progressComplete,下载已完成。下次打开这程序时会安装。你可以关闭这窗口。
+progressFailed,下载故障：{}

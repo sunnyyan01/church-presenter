@@ -1,0 +1,28 @@
+#playlist-header,Playlist
+#save-playlist-btn,Save Playlist
+#close-playlist-btn,Close Playlist
+#playlist-setup-text,No playlist currently open
+#open-playlist-btn,Open Playist
+#playlist-setup-text2,or
+#new-playlist-btn,New Playlist
+#slide-content-menu--edit,Edit
+#slide-content-menu--move-up,Move ↑
+#slide-content-menu--move-down,Move ↓
+#slide-content-menu--insert-above,Insert ↑
+#slide-content-menu--insert-below,Insert ↓
+#slide-content-menu--delete,Delete
+#preview-header,Preview
+#setup-preview-btn,Setup
+#control-group-label-slide,Slide Control
+#prev-slide-btn,Prev Slide (←/↑/PgUp)
+#next-slide-btn,Next Slide (→/↓/PgDn)
+#blank-btn,Blank Screen (B)
+#control-group-label-setup,Setup
+#open-slideshow-btn,Open Slideshow Window
+#remote-control-btn,Setup Remote Control
+#settings-btn,Settings
+a.updater-link,Check for updates
+===
+jumpPrompt,Enter a search term:
+subslideCountSelected,Subslide {} of {}
+subslideCountUnselected,{} subslides

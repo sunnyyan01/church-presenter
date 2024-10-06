@@ -1,0 +1,25 @@
+.toggle-button[data-mode="quick"],快编辑
+.toggle-button[data-mode="json"],JSON编辑
+.icon-button[data-action="load-saved-slide"],导入收藏幻灯片
+.icon-button[data-action="save-saved-slide"],导出收藏幻灯片
+#slide-data-table-row--template th,模板
+#slide-data-table-row--year th,年
+#slide-data-table-row--month th,月
+#slide-data-table-row--day th,日
+#slide-data-table-row--title th,标题
+#slide-data-table-row--location th,圣经位置
+#slide-data-table-row--version th,圣经版本
+#slide-data-table-row--name th,歌名
+#slide-data-table-row--subtitle th,副标题
+#slide-data-table-row--source th,来源
+#slide-data-table-row--videoId th,视频骗号
+#slide-data-table-row--start th,视频开始
+#slide-data-table-row--end th,视频结束
+#slide-data-table-row--url th,网址
+#slide-data-table-row--numSubslides th,页数
+#slide-data-table-row--subslides th,页
+#slide-data-table-row--subtitles th,字幕
+#slide-data-table-row--preview th,预览
+#save-btn,保存和关闭
+===
+pageTitle,编辑幻灯片

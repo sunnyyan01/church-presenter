@@ -1,0 +1,6 @@
+h1,Settings
+div[data-key="lang"] h4,Language:
+.text-button.primary,Save & Close
+.text-button.secondary,Close
+===
+pageTitle,Settings

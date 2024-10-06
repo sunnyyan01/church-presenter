@@ -302,4 +302,6 @@ window.addEventListener("keydown", e => {
 
 window.addEventListener("load", () => {
     jsonEditor = document.getElementById("json-editor");
+
+    loadTranslations();
 })

@@ -1,0 +1,5 @@
+.text-button[data-action="fix-symbols"],Fix Symbols
+.text-button[data-action="auto-bible"],Auto Bible
+.submit-btn,Done
+===
+pageTitle,New Playlist

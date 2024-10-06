@@ -1,0 +1,6 @@
+h1,设置
+div[data-key="lang"] h4,语言：
+.text-button.primary,保存
+.text-button.secondary,取消
+===
+pageTitle,设置

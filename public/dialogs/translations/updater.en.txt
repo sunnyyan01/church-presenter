@@ -1,0 +1,11 @@
+#update-message,Checking for updates...
+#update-button,Update
+===
+pageTitle,Updater
+noVersionInfo,There is a minor problem with your install, you can update to fix this
+noUpdateAvail,The latest version is already installed
+updateAvail,An update is available
+publishDate,Published {}
+progressDownload,Downloading update. You may close this window.
+progressComplete,Download complete. The update will be installed next time Church Presenter starts. You may close this window.
+progressFailed,Download failed: {}
