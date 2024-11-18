@@ -1,7 +1,7 @@
 let TRANSLATIONS = {};
 
 async function loadTranslations() {
-    let { lang } = JSON.parse(localStorage.getItem("settings"));
+    let { lang } = JSON.parse(localStorage.getItem("settings") || "{}");
     if (!lang) lang = "en";
 
     let pagePath = window.location.pathname;
@@ -13,8 +13,8 @@ async function loadTranslations() {
     let reader = new TextReader(translations);
 
     const TEXT_NODE_TYPES = ["H1", "H2", "H3", "H4", "H5", "H6", "P"]
-    while (reader.read() != "===") {
-        let [selector, string] = reader.lastRead.split(",", 2);
+    while (reader.read() !== "===") {
+        let [_, selector, string] = reader.lastRead.match(/(.+?),(.+)/);
         try {
             let e = document.querySelector(selector);
             if (
@@ -30,7 +30,7 @@ async function loadTranslations() {
     }
 
     while (reader.canRead) {
-        let [key, val] = reader.read().split(",", 2);
+        let [_, key, val] = reader.read().match(/(.+?),(.+)/);
         if (val.includes("{}"))
             TRANSLATIONS[key] = new FormatString(val);
         else

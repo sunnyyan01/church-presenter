@@ -14,31 +14,31 @@ body {
     display: none;
 }
 
-#saved-slides-list {
+#file-list {
     display: flex;
     flex-direction: column;
 }
 
-#saved-slides-list:empty::before {
+#file-list:empty::before {
     content: "There are no saved slides";
     text-align: center;
     font-style: italic;
 }
 
-.saved-slide {
+.file {
     cursor: pointer;
     padding: 2px 5px;
     border: 2px solid transparent;
 }
-.saved-slide:hover {
+.file:hover {
     background-color: rgba(0,255,255,0.25);
 }
-.saved-slide[data-selected=true] {
+.file[data-selected=true] {
     background-color: rgba(0,255,255,0.5);
     border-color: cyan;
 }
 
-#slide-name-input {
+#file-name-input {
     box-sizing: border-box;
     width: 100%;
     padding: 2px 5px;

@@ -516,7 +516,7 @@ async function openPlaylist(file) {
             parseTextPlaylist(text);
         } catch (e) {
             console.error(e);
-            throw Error(`Error parsing playlist line ${parseTextPlaylist.reader.idx}: ${e.message}`)
+            throw new Error(`Error parsing playlist line ${parseTextPlaylist.reader.idx}: ${e.message}`)
         }
     } else if (file.type == "application/json") {
         playlist = JSON.parse(await file.text());
@@ -715,9 +715,11 @@ window.addEventListener("message", e => {
 })
 
 async function checkVersion() {
+    if (sessionStorage.getItem("serverlessMode") === "true") return;
+    
     let resp = await fetch("/api/update/check");
     if (!resp.ok)
-        throw Error();
+        throw new Error("Couldn't check version");
     let {curVersion, latestVersion} = await resp.json();
     let curYear = new Date().getFullYear();
 
@@ -735,10 +737,18 @@ async function checkVersion() {
 }
 const openUpdater = e => window.open("dialogs/updater.html", "updater", "width=500,height=500")
 
-function checkServer() {
-    fetch("/api")
-        .catch(err => document.body.dataset.serverlessMode = true)
-        .then(res => document.body.dataset.serverlessMode = !res.ok);
+async function checkServer() {
+    try {
+        let res = await fetch("/api");
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+async function setServerlessMode() {
+    let serverlessMode = !(await checkServer());
+    document.body.dataset.serverlessMode = serverlessMode;
+    sessionStorage.setItem("serverlessMode", serverlessMode);
 }
 
 window.addEventListener("load", e => {
@@ -751,8 +761,9 @@ window.addEventListener("load", e => {
 
     loadTranslations();
 
+    setServerlessMode();
+
     checkVersion();
-    checkServer();
 });
 
 function wsConnect() {

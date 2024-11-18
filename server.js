@@ -6,8 +6,7 @@ import { bibleLookup } from "./server/bible.js";
 import { openUserFiles } from './server/other.js';
 import { remoteQr } from "./server/remote.js"
 import { checkUpdate, downloadUpdate } from './server/update.js';
-import { getSavedSlide, getSavedSlides, putSavedSlide, deleteSavedSlide } from './server/saved-slides.js';
-
+import { listFiles, getFile, putFile, deleteFile } from './server/files.js';
 const app = express();
 app.port = 3000;
 
@@ -27,10 +26,10 @@ app.get('/api/remote-qr', remoteQr);
 app.get('/api/update/check', checkUpdate);
 app.get('/api/update/download', downloadUpdate);
 app.get('/api/open-user-files', openUserFiles);
-app.get('/api/saved-slides', getSavedSlides);
-app.get('/api/saved-slide/:name', getSavedSlide);
-app.put('/api/saved-slide/:name', putSavedSlide);
-app.delete('/api/saved-slide/:name', deleteSavedSlide);
+app.get('/api/files/:folder', listFiles);
+app.get('/api/files/:folder/:name', getFile);
+app.put('/api/files/:folder/:name', putFile);
+app.delete('/api/files/:folder/:name', deleteFile);
 
 const server = app.listen(app.port, () => {
     if (process.env.DEV_MODE === "1")

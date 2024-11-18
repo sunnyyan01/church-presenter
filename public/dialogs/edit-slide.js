@@ -215,10 +215,13 @@ async function autoSubslides(force = false) {
     
     let location = getCurValue("location");
     let version = getCurValue("version");
-    let url = window.origin + `/api/bible-lookup?loc=${location}`;
-    if (version)
-        url += `&version=${version}`
-    let resp = await fetch(url);
+    let url = (
+        sessionStorage.getItem("serverlessMode") === "true"
+        ? "https://churchpresenterapi.azurewebsites.net/api/bible-lookup"
+        : "/api/bible-lookup"
+    )
+    let search = new URLSearchParams({loc: location, version: version});
+    let resp = await fetch(url + "?" + search.toString());
     let text = await resp.text();
     if (resp.ok) {
         setValue("subslides", text);
@@ -253,23 +256,27 @@ function allAuto() {
     autoDate();
     autoPreview();
     autoTimeConvert();
-    autoSlides();
+    autoSubslides();
 }
 
 function loadSavedSlide() {
-    let win = window.open("saved-slides.html", "saved-slides", "width=500,height=500");
-    setTimeout(() => win.postMessage({
+    let search = new URLSearchParams({
+        folder: "saved-slides",
         action: "load",
-        overwriteWarn: getCurValue("id") !== "new",
-    }), 1000);
+        overwriteWarn: getCurValue("id") !== "new"
+    });
+    let win = window.open("file-picker.html?" + search.toString(), "saved-slides", "width=500,height=500");
 }
 function saveSlide() {
     let slide = pageToSlide();
-    let win = window.open("saved-slides.html", "saved-slides", "width=500,height=500");
-    setTimeout(() => win.postMessage({
+    let search = new URLSearchParams({
+        folder: "saved-slides",
         action: "save",
-        slide
-    }), 1000);
+    });
+    let win = window.open("file-picker.html?" + search.toString(), "saved-slides", "width=500,height=500");
+    delete slide.id;
+    delete slide.idx;
+    setTimeout(() => win.postMessage(slide), 1000);
 }
 
 function save() {

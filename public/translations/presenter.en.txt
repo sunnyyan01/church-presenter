@@ -2,7 +2,7 @@
 #save-playlist-btn,Save Playlist
 #close-playlist-btn,Close Playlist
 #playlist-setup-text,No playlist currently open
-#open-playlist-btn,Open Playist
+#open-playlist-btn,Open Playlist
 #playlist-setup-text2,or
 #new-playlist-btn,New Playlist
 #slide-content-menu--edit,Edit

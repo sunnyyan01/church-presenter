@@ -14,6 +14,18 @@ function fixSymbols() {
     editor.value = processed;
 }
 
+async function bibleLookup(loc, version) {
+    let url = (
+        sessionStorage.getItem("serverlessMode") === "true"
+        ? "https://churchpresenterapi.azurewebsites.net/api/bible-lookup"
+        : "/api/bible-lookup"
+    )
+    let search = new URLSearchParams({loc, version});
+    let resp = await fetch(url + "?" + search.toString());
+    if (!resp.ok) throw new Error();
+    return await resp.text();
+}
+
 async function autoBible() {
     let editor = document.getElementById("editor");
     let {selectionStart, selectionEnd} = editor;
@@ -25,14 +37,10 @@ async function autoBible() {
             let match = /1,[^,]+,([^,]+)/.exec(line);
             let match2 = /version=(.+)(,|$)/.exec(line);
             if (match) {
-                let url = window.origin + `/api/bible-lookup?loc=${match[1]}`
-                if (match2)
-                    url += '&version=' + match2[1];
-                let resp = await fetch(url);
-                let text = await resp.text();
-                if (resp.ok) {
+                try {
+                    let text = await bibleLookup(match, match2 || "");
                     processed.push(text.trim()+"E");
-                } else {
+                } catch {
                     handleError({
                         row: processed.length - 1,
                         error: new Error(text),
@@ -46,14 +54,8 @@ async function autoBible() {
         let match = /1,[^,]+,([^,]+)/.exec(line);
         let match2 = /version=(.+)(,|$)/.exec(line);
         if (match) {
-            let url = window.origin + `/api/bible-lookup?loc=${match[1]}`
-                if (match2)
-                    url += '&version=' + match2[1];
-            let resp = await fetch(url);
-            if (resp.ok) {
-                let text = await resp.text();
-                editor.setRangeText(line + "\n" + text.trim() + "E\n");
-            }
+            let text = await bibleLookup(match, match2 || "");
+            editor.setRangeText(line + "\n" + text.trim() + "E\n");
         }
     }
 }
